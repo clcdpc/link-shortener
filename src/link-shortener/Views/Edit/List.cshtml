@@ -1,0 +1,27 @@
+﻿@model IEnumerable<Clc.LinkShortener.Data.Link>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<table>
+    <tr>
+        <th></th>
+        <th> Short URL </th>
+        <th> URL </th>
+        <th> Creation Date </th>
+        <th> Modified Date</th>
+    </tr>
+@foreach (var link in Model)
+{
+    <tr>
+        <td> @Html.ActionLink("Edit", "Link", new { shortURL = link.ShortURL }) </td>
+        <td> @link.ShortURL </td>
+        <td style="max-width: 250px; word-wrap:break-word;"> @link.URL </td>
+        <td> @link.CreationDate.ToShortDateString() </td>
+        <td> @( link.ModifiedDate.HasValue ? link.ModifiedDate.Value.ToShortDateString() : "" ) </td>
+    </tr>
+}
+</table>

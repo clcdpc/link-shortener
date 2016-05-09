@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="LinkModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityContainer Name="LinkModelStoreContainer">
+          <EntitySet Name="Admins" EntityType="LinkModel.Store.Admins" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="Links" EntityType="LinkModel.Store.Links" store:Type="Tables" Schema="dbo" />
+          <EntitySet Name="LinkVisits" EntityType="LinkModel.Store.LinkVisits" store:Type="Tables" Schema="dbo" />
+          <AssociationSet Name="FK_LinkVisits_Links" Association="LinkModel.Store.FK_LinkVisits_Links">
+            <End Role="Links" EntitySet="Links" />
+            <End Role="LinkVisits" EntitySet="LinkVisits" />
+          </AssociationSet>
+        </EntityContainer>
+        <EntityType Name="Admins">
+          <Key>
+            <PropertyRef Name="Username" />
+          </Key>
+          <Property Name="Username" Type="varchar" Nullable="false" MaxLength="255" />
+        </EntityType>
+        <EntityType Name="Links">
+          <Key>
+            <PropertyRef Name="ShortURL" />
+          </Key>
+          <Property Name="ShortURL" Type="varchar" Nullable="false" MaxLength="50" />
+          <Property Name="Creator" Type="varchar" Nullable="false" MaxLength="255" />
+          <Property Name="CreationDate" Type="datetime" Nullable="false" />
+          <Property Name="URL" Type="varchar(max)" Nullable="false" />
+          <Property Name="ModifiedDate" Type="datetime" />
+        </EntityType>
+        <EntityType Name="LinkVisits">
+          <Key>
+            <PropertyRef Name="VisitID" />
+          </Key>
+          <Property Name="VisitID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
+          <Property Name="ShortURL" Type="varchar" Nullable="false" MaxLength="50" />
+          <Property Name="VisitorIP" Type="varchar" Nullable="false" MaxLength="50" />
+          <Property Name="VisitTime" Type="datetime" Nullable="false" />
+          <Property Name="Referrer" Type="varchar(max)" />
+        </EntityType>
+        <Association Name="FK_LinkVisits_Links">
+          <End Role="Links" Type="LinkModel.Store.Links" Multiplicity="1" />
+          <End Role="LinkVisits" Type="LinkModel.Store.LinkVisits" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Links">
+              <PropertyRef Name="ShortURL" />
+            </Principal>
+            <Dependent Role="LinkVisits">
+              <PropertyRef Name="ShortURL" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="LinkModel" Alias="Self" p1:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:p1="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="LinkEntities" p1:LazyLoadingEnabled="true">
+          <EntitySet Name="Links" EntityType="LinkModel.Link" />
+          <EntitySet Name="LinkVisits" EntityType="LinkModel.LinkVisit" />
+          <AssociationSet Name="FK_LinkVisits_Links" Association="LinkModel.FK_LinkVisits_Links">
+            <End Role="Links" EntitySet="Links" />
+            <End Role="LinkVisits" EntitySet="LinkVisits" />
+          </AssociationSet>
+          <EntitySet Name="Admins" EntityType="LinkModel.Admin" />
+        </EntityContainer>
+        <EntityType Name="Link">
+          <Key>
+            <PropertyRef Name="ShortURL" />
+          </Key>
+          <Property Name="ShortURL" Type="String" Nullable="false" MaxLength="50" Unicode="false" FixedLength="false" />
+          <Property Name="Creator" Type="String" Nullable="false" MaxLength="255" Unicode="false" FixedLength="false" />
+          <Property Name="CreationDate" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="URL" Type="String" Nullable="false" MaxLength="Max" Unicode="false" FixedLength="false" />
+          <NavigationProperty Name="LinkVisits" Relationship="LinkModel.FK_LinkVisits_Links" FromRole="Links" ToRole="LinkVisits" />
+          <Property Type="DateTime" Name="ModifiedDate" Precision="3" />
+        </EntityType>
+        <EntityType Name="LinkVisit">
+          <Key>
+            <PropertyRef Name="VisitID" />
+          </Key>
+          <Property Name="VisitID" Type="Int32" Nullable="false" p1:StoreGeneratedPattern="Identity" />
+          <Property Name="ShortURL" Type="String" Nullable="false" MaxLength="50" Unicode="false" FixedLength="false" />
+          <Property Name="VisitorIP" Type="String" Nullable="false" MaxLength="50" Unicode="false" FixedLength="false" />
+          <Property Name="VisitTime" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="Referrer" Type="String" MaxLength="Max" Unicode="false" FixedLength="false" />
+          <NavigationProperty Name="Link" Relationship="LinkModel.FK_LinkVisits_Links" FromRole="LinkVisits" ToRole="Links" />
+        </EntityType>
+        <Association Name="FK_LinkVisits_Links">
+          <End Role="Links" Type="LinkModel.Link" Multiplicity="1" />
+          <End Role="LinkVisits" Type="LinkModel.LinkVisit" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Links">
+              <PropertyRef Name="ShortURL" />
+            </Principal>
+            <Dependent Role="LinkVisits">
+              <PropertyRef Name="ShortURL" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="Admin">
+          <Key>
+            <PropertyRef Name="Username" />
+          </Key>
+          <Property Type="String" Name="Username" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="LinkModelStoreContainer" CdmEntityContainer="LinkEntities">
+          <EntitySetMapping Name="Links">
+            <EntityTypeMapping TypeName="LinkModel.Link">
+              <MappingFragment StoreEntitySet="Links">
+                <ScalarProperty Name="ModifiedDate" ColumnName="ModifiedDate" />
+                <ScalarProperty Name="ShortURL" ColumnName="ShortURL" />
+                <ScalarProperty Name="Creator" ColumnName="Creator" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="URL" ColumnName="URL" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="LinkVisits">
+            <EntityTypeMapping TypeName="LinkModel.LinkVisit">
+              <MappingFragment StoreEntitySet="LinkVisits">
+                <ScalarProperty Name="VisitID" ColumnName="VisitID" />
+                <ScalarProperty Name="ShortURL" ColumnName="ShortURL" />
+                <ScalarProperty Name="VisitorIP" ColumnName="VisitorIP" />
+                <ScalarProperty Name="VisitTime" ColumnName="VisitTime" />
+                <ScalarProperty Name="Referrer" ColumnName="Referrer" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="Admins">
+            <EntityTypeMapping TypeName="LinkModel.Admin">
+              <MappingFragment StoreEntitySet="Admins">
+                <ScalarProperty Name="Username" ColumnName="Username" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="True" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>
