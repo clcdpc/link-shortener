@@ -17,3 +17,6 @@
 * Set 'Preload enabled' on the site to 'True'
 * Adjust IIS Site to offer Negotiate as an authentication provider
 * Publish the project to the IIS site
+
+## Other Configuration
+* To allow a user to manage ALL short links and not just their own, add them to the LinkShortener.dbo.Admins table in domain\username format
