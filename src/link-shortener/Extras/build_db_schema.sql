@@ -1,0 +1,69 @@
+﻿USE [LinkShortener]
+GO
+/****** Object:  Table [dbo].[Admins]    Script Date: 5/18/2016 2:41:53 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Admins](
+	[Username] [varchar](255) NOT NULL,
+ CONSTRAINT [PK_Admins] PRIMARY KEY CLUSTERED 
+(
+	[Username] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[Links]    Script Date: 5/18/2016 2:41:53 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[Links](
+	[ShortURL] [varchar](50) NOT NULL,
+	[Creator] [varchar](255) NOT NULL,
+	[CreationDate] [datetime] NOT NULL,
+	[URL] [varchar](max) NOT NULL,
+	[ModifiedDate] [datetime] NULL,
+ CONSTRAINT [PK_Links] PRIMARY KEY CLUSTERED 
+(
+	[ShortURL] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+/****** Object:  Table [dbo].[LinkVisits]    Script Date: 5/18/2016 2:41:53 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+SET ANSI_PADDING ON
+GO
+CREATE TABLE [dbo].[LinkVisits](
+	[VisitID] [int] IDENTITY(1,1) NOT NULL,
+	[ShortURL] [varchar](50) NOT NULL,
+	[VisitorIP] [varchar](50) NOT NULL,
+	[VisitTime] [datetime] NOT NULL,
+	[Referrer] [varchar](max) NULL,
+ CONSTRAINT [PK_LinkVisits] PRIMARY KEY CLUSTERED 
+(
+	[VisitID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+
+GO
+SET ANSI_PADDING OFF
+GO
+ALTER TABLE [dbo].[LinkVisits]  WITH CHECK ADD  CONSTRAINT [FK_LinkVisits_Links] FOREIGN KEY([ShortURL])
+REFERENCES [dbo].[Links] ([ShortURL])
+GO
+ALTER TABLE [dbo].[LinkVisits] CHECK CONSTRAINT [FK_LinkVisits_Links]
+GO
