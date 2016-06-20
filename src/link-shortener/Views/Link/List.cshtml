@@ -19,7 +19,7 @@
     <tr>
         <td> @Html.ActionLink("Edit", "Edit", new { shortURL = link.ShortURL }) </td>
         <td> @link.ShortURL </td>
-        <td style="max-width: 250px; word-wrap:break-word;"> @link.URL </td>
+        <td style="max-width: 1000px; word-wrap:break-word;"> @link.URL </td>
         <td> @link.CreationDate.ToShortDateString() </td>
         <td> @( link.ModifiedDate.HasValue ? link.ModifiedDate.Value.ToShortDateString() : "" ) </td>
     </tr>
