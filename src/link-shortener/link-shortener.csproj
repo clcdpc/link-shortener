@@ -132,10 +132,17 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\EditController.cs" />
+    <Compile Include="Controllers\NoteController.cs" />
     <Compile Include="Data\Admin.cs">
       <DependentUpon>LinkModel.tt</DependentUpon>
     </Compile>
     <Content Include="Extras\build_db_schema.sql" />
+    <Compile Include="Data\Note.cs">
+      <DependentUpon>LinkModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Data\NoteView.cs">
+      <DependentUpon>LinkModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="LinkUtils.cs" />
     <Compile Include="Controllers\LinkController.cs" />
     <Compile Include="Data\Link.cs">
@@ -305,6 +312,11 @@
     <Content Include="Views\Edit\List.cshtml" />
     <Content Include="Views\Link\Edit.cshtml" />
     <Content Include="Views\Link\List.cshtml" />
+    <Content Include="Views\Note\Index.cshtml" />
+    <Content Include="Views\Note\Create.cshtml" />
+    <Content Include="Views\Note\Display.cshtml" />
+    <Content Include="Views\Shared\_Empty.cshtml" />
+    <Content Include="Views\Note\InvalidNote.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

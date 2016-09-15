@@ -1,0 +1,21 @@
+﻿@model Note
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<div id="content">
+    @using (Html.BeginForm("Create", "Note"))
+    {
+        <div class="editor-label">
+            @Html.Label("Note text")
+        </div>
+        <div class="editor-field">
+            @Html.TextArea("noteText", new { style = "width:500px;" })            
+        </div>
+        <br />
+        <input type="submit" value="Create Note" />
+    }
+</div>

@@ -1,0 +1,11 @@
+﻿@model Note
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Note Created</h2>
+<p>Your one time view note has been created and can be found at the URL below</p>
+<div>
+    <input type="text" value="@string.Format("https://go.clcohio.org/note/{0}",Model.ID)" style="width:260px;" />
+</div>
