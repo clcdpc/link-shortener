@@ -9,6 +9,8 @@
         <EntityTypeShape EntityType="LinkModel.LinkVisit" Width="1.5" PointX="3" PointY="0.875" IsExpanded="true" />
         <AssociationConnector Association="LinkModel.FK_LinkVisits_Links" ManuallyRouted="false" />
         <EntityTypeShape EntityType="LinkModel.Admin" Width="1.5" PointX="2.7506282621764711" PointY="27.132138264892689" />
+        <EntityTypeShape EntityType="LinkModel.Note" Width="1.5" PointX="0.75" PointY="4.75" />
+        <EntityTypeShape EntityType="LinkModel.NoteView" Width="1.5" PointX="2.75" PointY="4.75" />
       </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>

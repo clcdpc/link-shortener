@@ -4,28 +4,19 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-    <Schema Namespace="LinkModel.Store" Alias="Self" Provider="System.Data.SqlClient" ProviderManifestToken="2008" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
-        <EntityContainer Name="LinkModelStoreContainer">
-          <EntitySet Name="Admins" EntityType="LinkModel.Store.Admins" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="Links" EntityType="LinkModel.Store.Links" store:Type="Tables" Schema="dbo" />
-          <EntitySet Name="LinkVisits" EntityType="LinkModel.Store.LinkVisits" store:Type="Tables" Schema="dbo" />
-          <AssociationSet Name="FK_LinkVisits_Links" Association="LinkModel.Store.FK_LinkVisits_Links">
-            <End Role="Links" EntitySet="Links" />
-            <End Role="LinkVisits" EntitySet="LinkVisits" />
-          </AssociationSet>
-        </EntityContainer>
+    <Schema Namespace="LinkModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="Admins">
           <Key>
             <PropertyRef Name="Username" />
           </Key>
-          <Property Name="Username" Type="varchar" Nullable="false" MaxLength="255" />
+          <Property Name="Username" Type="varchar" MaxLength="255" Nullable="false" />
         </EntityType>
         <EntityType Name="Links">
           <Key>
             <PropertyRef Name="ShortURL" />
           </Key>
-          <Property Name="ShortURL" Type="varchar" Nullable="false" MaxLength="50" />
-          <Property Name="Creator" Type="varchar" Nullable="false" MaxLength="255" />
+          <Property Name="ShortURL" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="Creator" Type="varchar" MaxLength="255" Nullable="false" />
           <Property Name="CreationDate" Type="datetime" Nullable="false" />
           <Property Name="URL" Type="varchar(max)" Nullable="false" />
           <Property Name="ModifiedDate" Type="datetime" />
@@ -34,15 +25,33 @@
           <Key>
             <PropertyRef Name="VisitID" />
           </Key>
-          <Property Name="VisitID" Type="int" Nullable="false" StoreGeneratedPattern="Identity" />
-          <Property Name="ShortURL" Type="varchar" Nullable="false" MaxLength="50" />
-          <Property Name="VisitorIP" Type="varchar" Nullable="false" MaxLength="50" />
+          <Property Name="VisitID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ShortURL" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="VisitorIP" Type="varchar" MaxLength="50" Nullable="false" />
           <Property Name="VisitTime" Type="datetime" Nullable="false" />
           <Property Name="Referrer" Type="varchar(max)" />
         </EntityType>
+        <EntityType Name="Notes">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="varchar" MaxLength="255" Nullable="false" />
+          <Property Name="Creator" Type="varchar" MaxLength="255" Nullable="false" />
+          <Property Name="CreationDate" Type="datetime2" Precision="7" Nullable="false" />
+          <Property Name="NoteText" Type="varchar(max)" Nullable="false" />
+        </EntityType>
+        <EntityType Name="NoteViews">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="NoteID" Type="varchar" MaxLength="255" Nullable="false" />
+          <Property Name="ViewerIP" Type="varchar" MaxLength="50" Nullable="false" />
+          <Property Name="ViewTime" Type="datetime2" Precision="7" Nullable="false" />
+        </EntityType>
         <Association Name="FK_LinkVisits_Links">
-          <End Role="Links" Type="LinkModel.Store.Links" Multiplicity="1" />
-          <End Role="LinkVisits" Type="LinkModel.Store.LinkVisits" Multiplicity="*" />
+          <End Role="Links" Type="Self.Links" Multiplicity="1" />
+          <End Role="LinkVisits" Type="Self.LinkVisits" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="Links">
               <PropertyRef Name="ShortURL" />
@@ -52,6 +61,17 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityContainer Name="LinkModelStoreContainer">
+          <EntitySet Name="Admins" EntityType="Self.Admins" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Links" EntityType="Self.Links" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="LinkVisits" EntityType="Self.LinkVisits" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="Notes" EntityType="Self.Notes" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="NoteViews" EntityType="Self.NoteViews" Schema="dbo" store:Type="Tables" />
+          <AssociationSet Name="FK_LinkVisits_Links" Association="Self.FK_LinkVisits_Links">
+            <End Role="Links" EntitySet="Links" />
+            <End Role="LinkVisits" EntitySet="LinkVisits" />
+          </AssociationSet>
+        </EntityContainer>
       </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
@@ -64,6 +84,8 @@
             <End Role="LinkVisits" EntitySet="LinkVisits" />
           </AssociationSet>
           <EntitySet Name="Admins" EntityType="LinkModel.Admin" />
+          <EntitySet Name="Notes" EntityType="LinkModel.Note" />
+          <EntitySet Name="NoteViews" EntityType="LinkModel.NoteView" />
         </EntityContainer>
         <EntityType Name="Link">
           <Key>
@@ -105,6 +127,24 @@
           </Key>
           <Property Type="String" Name="Username" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
         </EntityType>
+        <EntityType Name="Note">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="Creator" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="CreationDate" Type="DateTime" Nullable="false" Precision="7" />
+          <Property Name="NoteText" Type="String" Nullable="false" MaxLength="Max" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="NoteView">
+          <Key>
+            <PropertyRef Name="ID" />
+          </Key>
+          <Property Name="ID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="NoteID" Type="String" Nullable="false" MaxLength="255" FixedLength="false" Unicode="false" />
+          <Property Name="ViewerIP" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ViewTime" Type="DateTime" Nullable="false" Precision="7" />
+        </EntityType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -140,6 +180,26 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="Notes">
+            <EntityTypeMapping TypeName="LinkModel.Note">
+              <MappingFragment StoreEntitySet="Notes">
+                <ScalarProperty Name="NoteText" ColumnName="NoteText" />
+                <ScalarProperty Name="CreationDate" ColumnName="CreationDate" />
+                <ScalarProperty Name="Creator" ColumnName="Creator" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="NoteViews">
+            <EntityTypeMapping TypeName="LinkModel.NoteView">
+              <MappingFragment StoreEntitySet="NoteViews">
+                <ScalarProperty Name="ViewTime" ColumnName="ViewTime" />
+                <ScalarProperty Name="ViewerIP" ColumnName="ViewerIP" />
+                <ScalarProperty Name="NoteID" ColumnName="NoteID" />
+                <ScalarProperty Name="ID" ColumnName="ID" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>
@@ -157,6 +217,7 @@
         <DesignerProperty Name="EnablePluralization" Value="True" />
         <DesignerProperty Name="IncludeForeignKeysInModel" Value="True" />
         <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+        <DesignerProperty Name="UseLegacyProvider" Value="True" />
       </DesignerInfoPropertySet>
     </Options>
     <!-- Diagram content (shape and connector positions) -->

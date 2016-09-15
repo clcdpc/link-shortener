@@ -28,5 +28,7 @@ namespace Clc.LinkShortener.Data
         public DbSet<Link> Links { get; set; }
         public DbSet<LinkVisit> LinkVisits { get; set; }
         public DbSet<Admin> Admins { get; set; }
+        public DbSet<Note> Notes { get; set; }
+        public DbSet<NoteView> NoteViews { get; set; }
     }
 }
