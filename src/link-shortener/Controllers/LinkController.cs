@@ -98,7 +98,6 @@ namespace Clc.LinkShortener.Controllers
         [AllowAnonymous]
 		public ActionResult Follow(string shortUrl)
 		{
-			var asdf = Request.Form;
 			var link = db.Links.SingleOrDefault(l => l.ShortURL == shortUrl);
             if (link == null) return View("InvalidShortURL");
 
