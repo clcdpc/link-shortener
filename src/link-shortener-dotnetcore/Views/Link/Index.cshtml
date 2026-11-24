@@ -1,0 +1,48 @@
+﻿@model Link
+@{
+	ViewBag.Title = "Home Page";
+}
+
+@Html.ValidationSummary()
+
+<div id="content">
+    <h3>Create Short URL</h3>
+	@using (Html.BeginForm("CreateLink","Link"))
+	{
+		<div class="editor-label">
+			@Html.Label("URL to shorten")
+		</div>
+		<div class="editor-field">
+			@Html.TextBoxFor(m=>m.URL, htmlAttributes: new { style = "width:444px;" })
+		</div>
+         <div class="editor-label">
+			@Html.Label("Desired short url, if any")
+		</div>
+		<div class="editor-field">
+		    <label>https://go.clcohio.org/</label>	@Html.TextBoxFor(m => m.ShortURL, htmlAttributes: new { style = "margin-left: -5px;" })
+		</div>
+		<br />
+		<input type="submit" value="Create Short URL" />
+	}
+    <br/>
+    @Html.ActionLink("Manage My Links", "List", null, htmlAttributes: new { style = "font-size:14px" })
+    <br/>
+    <p>Bookmarklet (Drag onto bookmarks bar)
+        <a href="javascript:(function(){document.body.appendChild(document.createElement('script')).src='//go.clcohio.org/scripts/bookmarklet.js';})();">Shorten Link</a></p>
+    
+    
+
+    <hr />
+    <h3>Create One-Time Note, expires after 30 days - @DateTime.Now.AddDays(30).ToShortDateString() </h3>
+    @using (Html.BeginForm("Create", "Note"))
+    {
+        <div class="editor-label">
+            @Html.Label("Note text")
+        </div>
+        <div class="editor-field">
+            @Html.TextArea("noteText", htmlAttributes: new { style = "width:500px;" })
+        </div>
+        <br />
+        <input type="submit" value="Create Note" />
+    }
+</div>

@@ -1,0 +1,9 @@
+﻿@model string
+
+@{
+    ViewBag.Title = "Warning";
+}
+
+<h2>Warning</h2>
+<p>Once you view this note it will no longer be available. Make sure to copy or otherwise save any needed information if necessary.</p>
+@Html.ActionLink("View Note", "Display", new { id = Model })

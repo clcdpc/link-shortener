@@ -1,0 +1,22 @@
+﻿@model Note
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Note Created</h2>
+<p>Your one time view note has been created and can be found at the URL below</p>
+<p>This URL is not automatically shared and must be manually sent</p>
+<p><strong>Your note will expire after 30 days (@DateTime.Now.AddDays(30).ToShortDateString())</strong></p>
+<div>
+    <span style="font-weight:bold;">Share this URL: </span>
+    <input id="fullurl" type="text" value="@string.Format("https://go.clcohio.org/note/{0}",Model.ID)" style="width:260px;" />
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("input:text").focus(function () { $(this).select(); });
+        $('#fullurl').focus();
+		$('#fullurl').select();
+	});
+</script>
