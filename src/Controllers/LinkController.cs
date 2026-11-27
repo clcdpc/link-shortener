@@ -1,5 +1,6 @@
 using Clc.Authentication;
 using Clc.LinkShortener.Data;
+using Clc.LinkShortener.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,10 +13,10 @@ namespace Clc.LinkShortener.Controllers
     [Authorize]
     public class LinkController : Controller
     {
-        private readonly LinksDbHelper db;
+        private readonly LinkShortenerDb db;
         private readonly ClientIp clientIp;
 
-        public LinkController(LinksDbHelper db, ClientIp clientIp)
+        public LinkController(LinkShortenerDb db, ClientIp clientIp)
         {
             this.db = db;
             this.clientIp = clientIp;

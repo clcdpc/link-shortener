@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Clc.LinkShortener.Data
+namespace Clc.LinkShortener.Models
 {
     public class Link
     {

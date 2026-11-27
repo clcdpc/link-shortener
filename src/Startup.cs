@@ -1,5 +1,6 @@
 using Clc.Authentication;
 using Clc.LinkShortener.Data;
+using Clc.LinkShortener.Notes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -64,7 +65,7 @@ namespace Clc.LinkShortener
             var clientIp = new ClientIp(Configuration);
             services.AddSingleton(clientIp);
             services.AddRateLimiter(options => NoteRequests.ConfigureLimits(options, clientIp));
-            services.AddScoped(_ => new LinksDbHelper(databaseServer));
+            services.AddScoped(_ => new LinkShortenerDb(databaseServer));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

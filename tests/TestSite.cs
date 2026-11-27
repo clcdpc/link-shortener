@@ -21,7 +21,7 @@ internal sealed class TestSite : IDisposable
 {
     private readonly IHost host;
 
-    public TestSite(LinksDbHelper database = null)
+    public TestSite(LinkShortenerDb database = null)
     {
         host = new HostBuilder()
             .UseEnvironment("Testing")
