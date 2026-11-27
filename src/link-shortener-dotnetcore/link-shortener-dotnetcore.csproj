@@ -11,17 +11,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Clc.Authentication" Version="1.0.1" />
     <PackageReference Include="Dapper" Version="2.0.123" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="7.1.2" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="1.16.0" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="1.16.0" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="4.18.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\clc-appsettings\src\clc-appsettings\clc-appsettings.csproj" />
-    <ProjectReference Include="..\..\..\clc-auth-dotnetcore\src\clc-auth-dotnetcore\clc-azuread-auth-netcore.csproj" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties config_4settings_1json__JsonSchema="https://json.schemastore.org/appsettings.json" wwwroot_4lib_4bootstrap_4dist_4css_4bootstrap_1css_1map__JsonSchema="" /></VisualStudio></ProjectExtensions>

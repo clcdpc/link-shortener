@@ -1,26 +1,20 @@
-﻿using Azure.Core;
-using Clc.Configuration;
-using Dapper;
+﻿using Dapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using Microsoft.Data.SqlClient;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Clc.LinkShortener.DotNetCore.Data
 {
     public class LinksDbHelper
     {
         public string Server { get; set; }
-        public string ConnectionString => $"Server={config.Database.Hostname};Database=LinkShortener;Trusted_Connection=True;TrustServerCertificate=True;";
-        AppSettings config;
+        public string ConnectionString { get; }
 
-        public LinksDbHelper(AppSettings _config)
+        public LinksDbHelper(string databaseHostname)
         {
-            config = _config;
+            ConnectionString = $"Server={databaseHostname};Database=LinkShortener;Trusted_Connection=True;TrustServerCertificate=True;";
         }
 
         public Link GetShortUrl(string shortUrl)
