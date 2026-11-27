@@ -1,0 +1,12 @@
+{
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "TenantId": "00000000-0000-0000-0000-000000000001",
+    "ClientId": "00000000-0000-0000-0000-000000000002",
+    "CallbackPath": "/signin-oidc"
+  },
+  "Clc": {
+    "ApplicationName": "LinkShortener",
+    "DatabaseServer": "localhost"
+  }
+}

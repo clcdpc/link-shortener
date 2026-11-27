@@ -1,26 +1,24 @@
-﻿using Clc.Authentication;
+using Clc.Authentication;
 using Clc.LinkShortener.DotNetCore.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Clc.LinkShortener.DotNetCore.Controllers
 {
     [Authorize]
     public class LinkController : Controller
     {
-        LinksDbHelper db;
+        private readonly LinksDbHelper db;
+        private readonly ClientIp clientIp;
 
-        public LinkController(LinksDbHelper _db)
+        public LinkController(LinksDbHelper db, ClientIp clientIp)
         {
-            db = _db;
+            this.db = db;
+            this.clientIp = clientIp;
         }
 
         public IActionResult Index()
@@ -34,27 +32,34 @@ namespace Clc.LinkShortener.DotNetCore.Controllers
             return View(links);
         }
 
+        [HttpGet]
         public ActionResult Edit(string shortUrl)
         {
             var link = db.GetShortUrl(shortUrl);
             if (link == null) return View("InvalidShortURL");
+            if (!CanEdit(link)) return Forbid();
 
             return View(link);
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Edit(string shortUrl, string url)
         {
+            var link = db.GetShortUrl(shortUrl);
+            if (link == null) return RedirectToAction("List");
+            if (!CanEdit(link)) return Forbid();
+            if (string.IsNullOrWhiteSpace(url)) return BadRequest();
+
             if (!url.Contains(@"://")) url = string.Format(@"http://{0}", url);
-
-            if (string.Equals(db.GetShortUrl(shortUrl)?.Creator, User.Identity.Name) || User.IsAdmin())
-            {
-                db.UpdateLink(shortUrl, url);
-            }           
-
+            db.UpdateLink(shortUrl, url);
             return RedirectToAction("List");
         }
 
+        private bool CanEdit(Link link) => string.Equals(link.Creator, User.Identity.Name) || User.IsAdmin();
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult CreateLink(Link link)
         {
             if (link.URL == null)
@@ -100,7 +105,7 @@ namespace Clc.LinkShortener.DotNetCore.Controllers
         {
             var link = db.GetShortUrl(shortUrl);
             if (link == null) return View("InvalidShortURL");
-            db.AddLinkVisit(shortUrl, Request.GetTrueClientIP(), Request.GetTypedHeaders().Referer?.ToString());
+            db.AddLinkVisit(shortUrl, clientIp.Resolve(HttpContext), Request.GetTypedHeaders().Referer?.ToString());
             return Redirect(link.URL);
         }
 
@@ -124,22 +129,6 @@ namespace Clc.LinkShortener.DotNetCore.Controllers
             }
 
             return shortURL;
-        }
-    }    
-
-    public static class HttpRequestExtensions
-    {
-        public static string GetTrueClientIP(this HttpRequest request)
-        {
-            request.Headers.TryGetValue("CF-Connecting-IP", out var cfHeaderVal);
-            var cfClientIp = cfHeaderVal.FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(cfClientIp))
-            {
-                return cfClientIp;
-            }
-
-            return request.HttpContext.Connection.RemoteIpAddress?.ToString();
         }
     }
 }

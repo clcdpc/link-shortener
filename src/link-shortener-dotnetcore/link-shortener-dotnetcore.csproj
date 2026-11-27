@@ -19,6 +19,11 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Resources/note-words.txt" LogicalName="Clc.LinkShortener.DotNetCore.Resources.note-words.txt" />
+    <InternalsVisibleTo Include="LinkShortener.Tests" />
+  </ItemGroup>
+
   <ProjectExtensions><VisualStudio><UserProperties config_4settings_1json__JsonSchema="https://json.schemastore.org/appsettings.json" wwwroot_4lib_4bootstrap_4dist_4css_4bootstrap_1css_1map__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
 </Project>

@@ -3,6 +3,7 @@ using Clc.LinkShortener.DotNetCore.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,6 +60,10 @@ namespace Clc.LinkShortener.DotNetCore
             });
 
             services.AddSingleton(Configuration);
+            services.AddSingleton(NoteWords.Load());
+            var clientIp = new ClientIp(Configuration);
+            services.AddSingleton(clientIp);
+            services.AddRateLimiter(options => NoteRequests.ConfigureLimits(options, clientIp));
             services.AddScoped(_ => new LinksDbHelper(databaseServer));
         }
 
@@ -74,10 +79,22 @@ namespace Clc.LinkShortener.DotNetCore
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+            app.UseWhen(context => NoteRequests.IsNotePath(context.Request.Path), notes =>
+            {
+                notes.Use(NoteRequests.SetPrivacyHeaders);
+                notes.UseExceptionHandler(errors => errors.Run(context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "text/plain; charset=utf-8";
+                    return context.Response.WriteAsync("The note request could not be completed.");
+                }));
+            });
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();

@@ -1,0 +1,40 @@
+name: PR validation
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Build, test, and publish
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      APP_PROJECT: src/link-shortener-dotnetcore/link-shortener-dotnetcore.csproj
+      TEST_PROJECT: tests/LinkShortener.Tests/LinkShortener.Tests.csproj
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73 # v6.1.0
+        with:
+          dotnet-version: '10.0.x'
+
+      # The test project references the application.
+      - name: Restore
+        run: dotnet restore "$env:TEST_PROJECT"
+
+      - name: Build
+        run: dotnet build "$env:TEST_PROJECT" --configuration Release --no-restore
+
+      # xUnit reports SQL tests as skipped without LINK_SHORTENER_TEST_SQL.
+      - name: Test
+        run: dotnet test "$env:TEST_PROJECT" --configuration Release --no-build --logger "console;verbosity=normal"
+
+      - name: Verify publish
+        run: dotnet publish "$env:APP_PROJECT" --configuration Release --no-build --output artifacts/publish

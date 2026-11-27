@@ -1,4 +1,4 @@
-﻿@model Note
+@model string
 
 @{
     ViewBag.Title = "Create";
@@ -10,7 +10,7 @@
 <p><strong>Your note will expire after 30 days (@DateTime.Now.AddDays(30).ToShortDateString())</strong></p>
 <div>
     <span style="font-weight:bold;">Share this URL: </span>
-    <input id="fullurl" type="text" value="@string.Format("https://go.clcohio.org/note/{0}",Model.ID)" style="width:260px;" />
+    <input id="fullurl" type="text" value="@string.Format("https://go.clcohio.org/note/{0}",Model)" style="width:100%; max-width:40rem;" />
 </div>
 
 <script type="text/javascript">
