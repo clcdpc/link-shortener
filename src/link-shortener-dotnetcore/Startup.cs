@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Clc.Authentication;
+using Clc.LinkShortener.DotNetCore.Data;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Identity.Web;
-using Microsoft.Identity.Web.UI;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -10,11 +8,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Clc.Auth.AzureAd;
-using Clc.Auth.AzureAd.Security;
-using Clc.Auth.AzureAd.Data;
-using Clc.LinkShortener.DotNetCore.Data;
-using Clc.Configuration;
+using Microsoft.Identity.Web.UI;
 
 namespace Clc.LinkShortener.DotNetCore
 {
@@ -38,9 +32,15 @@ namespace Clc.LinkShortener.DotNetCore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            const string databaseServerKey = "Clc:DatabaseServer";
+            var databaseServer = Configuration[databaseServerKey];
+            if (string.IsNullOrWhiteSpace(databaseServer))
+            {
+                databaseServer = Configuration["Clc:Database:Hostname"];
+                Configuration[databaseServerKey] = databaseServer;
+            }
 
-            services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApp(Configuration.GetSection("AzureAd"));
+            services.AddClcAzureAdAuth(Configuration);
 
             services.AddControllersWithViews(options =>
             {
@@ -64,13 +64,7 @@ namespace Clc.LinkShortener.DotNetCore
             var clientIp = new ClientIp(Configuration);
             services.AddSingleton(clientIp);
             services.AddRateLimiter(options => NoteRequests.ConfigureLimits(options, clientIp));
-            services.AddSingleton(x => Configuration.GetSection("Clc").Get<AppSettings>());
-
-            services.AddScoped(x => new AuthDbHelper(x.GetRequiredService<AppSettings>()));
-            services.AddScoped(x => new LinksDbHelper(x.GetRequiredService<AppSettings>()));
-
-            services.AddSingleton<IAuthorizationHandler>(x => new IsClcUserCheckHandler(x.GetRequiredService<AppSettings>().Database.Hostname, x.GetRequiredService<AppSettings>().ApplicationName));
-            services.AddSingleton<IClaimsTransformation>(x => new ClcAzureAdClaimsTransformer(x.GetRequiredService<AppSettings>().Database.Hostname, x.GetRequiredService<AppSettings>().ApplicationName));           
+            services.AddScoped(_ => new LinksDbHelper(databaseServer));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

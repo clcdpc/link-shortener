@@ -11,6 +11,7 @@
 * An AD account with SQL access to the LinkShortener database and a strong, non-expiring password
 
 ## Deployment instructions
+* In `config/settings.json`, set `Clc:DatabaseServer` to the SQL Server host or instance used for the `LinkShortener` and `clc_web_membership` databases. The application also accepts the legacy `Clc:Database:Hostname` key when the new key is absent. If you migrate the setting, update all environment-specific overrides at the same time.
 * Create HTTPS IIS Site
 * Set the application pool Identity to the AD account credentials
 * Set 'Start Mode' on the application pool to 'AlwaysRunning'

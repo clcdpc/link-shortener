@@ -7,6 +7,6 @@
   },
   "Clc": {
     "ApplicationName": "LinkShortener",
-    "Database": { "Hostname": "localhost" }
+    "DatabaseServer": "localhost"
   }
 }

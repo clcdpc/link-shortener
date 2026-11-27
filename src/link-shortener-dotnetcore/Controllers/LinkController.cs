@@ -1,5 +1,4 @@
-using Clc.Auth;
-using Clc.Auth.AzureAd;
+using Clc.Authentication;
 using Clc.LinkShortener.DotNetCore.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

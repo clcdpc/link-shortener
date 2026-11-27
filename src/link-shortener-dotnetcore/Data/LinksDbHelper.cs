@@ -1,4 +1,3 @@
-using Clc.Configuration;
 using Dapper;
 using System;
 using System.Collections.Generic;
@@ -10,10 +9,10 @@ namespace Clc.LinkShortener.DotNetCore.Data
     {
         public string ConnectionString { get; }
 
-        public LinksDbHelper(AppSettings config)
+        public LinksDbHelper(string databaseHostname)
             : this(new SqlConnectionStringBuilder
             {
-                DataSource = config.Database.Hostname,
+                DataSource = databaseHostname,
                 InitialCatalog = "LinkShortener",
                 IntegratedSecurity = true,
                 TrustServerCertificate = true

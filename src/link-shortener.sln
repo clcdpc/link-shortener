@@ -1,15 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30907.101
+# Visual Studio Version 18
+VisualStudioVersion = 18.11.12315.225 stable
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "link-shortener", "link-shortener\link-shortener.csproj", "{C7F7733F-4DEC-46D1-B42E-5B896E13EF1D}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "link-shortener-dotnetcore", "link-shortener-dotnetcore\link-shortener-dotnetcore.csproj", "{5B3040CE-F18A-4F9E-B112-C5304424D597}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "clc-azuread-auth-netcore", "..\..\clc-auth-dotnetcore\src\clc-auth-dotnetcore\clc-azuread-auth-netcore.csproj", "{5B208A4E-D8F9-44DE-AAB3-19393A6B06F2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "clc-appsettings", "..\..\clc-appsettings\src\clc-appsettings\clc-appsettings.csproj", "{E650114C-87A5-4FAB-BC53-58D43F982D93}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,22 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C7F7733F-4DEC-46D1-B42E-5B896E13EF1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C7F7733F-4DEC-46D1-B42E-5B896E13EF1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C7F7733F-4DEC-46D1-B42E-5B896E13EF1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C7F7733F-4DEC-46D1-B42E-5B896E13EF1D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5B3040CE-F18A-4F9E-B112-C5304424D597}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5B3040CE-F18A-4F9E-B112-C5304424D597}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B3040CE-F18A-4F9E-B112-C5304424D597}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B3040CE-F18A-4F9E-B112-C5304424D597}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5B208A4E-D8F9-44DE-AAB3-19393A6B06F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5B208A4E-D8F9-44DE-AAB3-19393A6B06F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5B208A4E-D8F9-44DE-AAB3-19393A6B06F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5B208A4E-D8F9-44DE-AAB3-19393A6B06F2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E650114C-87A5-4FAB-BC53-58D43F982D93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E650114C-87A5-4FAB-BC53-58D43F982D93}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E650114C-87A5-4FAB-BC53-58D43F982D93}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E650114C-87A5-4FAB-BC53-58D43F982D93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
