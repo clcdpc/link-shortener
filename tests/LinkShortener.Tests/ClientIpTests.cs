@@ -1,5 +1,5 @@
 using System.Net;
-using Clc.LinkShortener.DotNetCore;
+using Clc.LinkShortener;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 

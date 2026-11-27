@@ -1,5 +1,5 @@
 using Clc.Authentication;
-using Clc.LinkShortener.DotNetCore.Data;
+using Clc.LinkShortener.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -10,7 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Identity.Web.UI;
 
-namespace Clc.LinkShortener.DotNetCore
+namespace Clc.LinkShortener
 {
     public class Startup
     {

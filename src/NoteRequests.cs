@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.RateLimiting;
 
-namespace Clc.LinkShortener.DotNetCore
+namespace Clc.LinkShortener
 {
     internal enum NoteRequestType
     {

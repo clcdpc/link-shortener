@@ -4,7 +4,7 @@ using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 
-namespace Clc.LinkShortener.DotNetCore
+namespace Clc.LinkShortener
 {
     public sealed class ClientIp
     {
