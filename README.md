@@ -20,3 +20,7 @@
 
 ## Other Configuration
 * To allow a user to manage ALL short links and not just their own, add them to the LinkShortener.dbo.Admins table in domain\username format
+
+## One-time notes
+
+See the [one-time note deployment and operations guide](sql/README.md) for database verification, SQL Server Agent cleanup, trusted proxy configuration, and local tests.

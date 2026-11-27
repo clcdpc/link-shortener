@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +5,7 @@ using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +15,6 @@ using Clc.Auth.AzureAd.Security;
 using Clc.Auth.AzureAd.Data;
 using Clc.LinkShortener.DotNetCore.Data;
 using Clc.Configuration;
-using System.Threading;
 
 namespace Clc.LinkShortener.DotNetCore
 {
@@ -65,6 +60,10 @@ namespace Clc.LinkShortener.DotNetCore
             });
 
             services.AddSingleton(Configuration);
+            services.AddSingleton(NoteWords.Load());
+            var clientIp = new ClientIp(Configuration);
+            services.AddSingleton(clientIp);
+            services.AddRateLimiter(options => NoteRequests.ConfigureLimits(options, clientIp));
             services.AddSingleton(x => Configuration.GetSection("Clc").Get<AppSettings>());
 
             services.AddScoped(x => new AuthDbHelper(x.GetRequiredService<AppSettings>()));
@@ -86,10 +85,22 @@ namespace Clc.LinkShortener.DotNetCore
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+            app.UseWhen(context => NoteRequests.IsNotePath(context.Request.Path), notes =>
+            {
+                notes.Use(NoteRequests.SetPrivacyHeaders);
+                notes.UseExceptionHandler(errors => errors.Run(context =>
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "text/plain; charset=utf-8";
+                    return context.Response.WriteAsync("The note request could not be completed.");
+                }));
+            });
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseRateLimiter();
 
             app.UseAuthentication();
             app.UseAuthorization();

@@ -1,26 +1,29 @@
-﻿using Azure.Core;
 using Clc.Configuration;
 using Dapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using Microsoft.Data.SqlClient;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Clc.LinkShortener.DotNetCore.Data
 {
     public class LinksDbHelper
     {
-        public string Server { get; set; }
-        public string ConnectionString => $"Server={config.Database.Hostname};Database=LinkShortener;Trusted_Connection=True;TrustServerCertificate=True;";
-        AppSettings config;
+        public string ConnectionString { get; }
 
-        public LinksDbHelper(AppSettings _config)
+        public LinksDbHelper(AppSettings config)
+            : this(new SqlConnectionStringBuilder
+            {
+                DataSource = config.Database.Hostname,
+                InitialCatalog = "LinkShortener",
+                IntegratedSecurity = true,
+                TrustServerCertificate = true
+            })
         {
-            config = _config;
+        }
+
+        internal LinksDbHelper(SqlConnectionStringBuilder connection)
+        {
+            ConnectionString = connection.ConnectionString;
         }
 
         public Link GetShortUrl(string shortUrl)
@@ -88,88 +91,100 @@ namespace Clc.LinkShortener.DotNetCore.Data
             }
         }
 
-        public bool AddNote(Note note)
-        {
-            using (var sql = new SqlConnection(ConnectionString))
-            {
-                var sqlCommand = "insert into notes values (@id, @creator, getdate(), @noteText)";
+        internal const int NoteIdCapacity = 255;
+        private const int NoteInsertAttempts = 5;
 
-                return sql.Execute(sqlCommand, new { note.ID, note.NoteText, note.Creator }) > 0;
-            }
-        }
-
-        public Note GetNote(string noteId) => SelectFirst<Note>("select * from notes where id = @noteId", new { noteId });
-
-        T SelectFirst<T>(string sqlCommand, object parameters)
-        {
-            using (var sql = new SqlConnection(ConnectionString))
-            {
-                return sql.QueryFirstOrDefault<T>(sqlCommand, parameters);
-            }
-        }
-
-        IEnumerable<T> Select<T>(string sqlCommand, object parameters)
-        {
-            using (var sql = new SqlConnection(ConnectionString))
-            {
-                return sql.Query<T>(sqlCommand, parameters);
-            }
-        }
-
-        public bool AddNoteView(string noteId, string ipAddress)
+        internal string AddNote(string creator, string noteText, Func<string> generateId)
         {
             using var sql = new SqlConnection(ConnectionString);
-            var sqlCommand = "insert into NoteViews (NoteID, ViewerIP, ViewTime) values(@noteId, @ipAddress, getdate())";
-
-            return sql.Execute(sqlCommand, new { noteId, ipAddress }) > 0;
-        }
-
-        public bool WriteHeaders(string noteId, HttpContext context)
-        {
-            var skip = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Authorization", "Cookie", "Set-Cookie" };
-
-            var rows = context.Request.Headers
-                .Where(h => !skip.Contains(h.Key))
-                .SelectMany(h => h.Value, (h, v) => new
-                {
-                    NoteId = noteId,
-                    Name = h.Key,
-                    Value = v
-                })
-                .ToList();
-
-            if (rows.Count == 0) return true;
-
-            using var conn = new SqlConnection(ConnectionString);
-
-            var cols = new[] { "NoteId", "Name", "Value" };
-
-            var valuesSql = string.Join(", ",
-                Enumerable.Range(0, rows.Count)
-                    .Select(i => $"(@{cols[0]}{i}, @{cols[1]}{i}, @{cols[2]}{i})"));
-
-            var sql = $"insert into dbo.NoteViewRequestHeaders ({string.Join(", ", cols)}) values {valuesSql};";
-
-            var dp = new DynamicParameters();
-            for (int i = 0; i < rows.Count; i++)
+            for (var attempt = 0; attempt < NoteInsertAttempts; attempt++)
             {
-                dp.Add($"{cols[0]}{i}", rows[i].NoteId);
-                dp.Add($"{cols[1]}{i}", rows[i].Name);
-                dp.Add($"{cols[2]}{i}", rows[i].Value);
+                var id = generateId();
+                try
+                {
+                    const string insert = """
+                        INSERT INTO dbo.Notes (ID, Creator, CreationDate, NoteText)
+                        VALUES (@id, @creator, GETDATE(), @noteText);
+                        """;
+                    if (sql.Execute(insert, new { id, creator, noteText }) != 1)
+                    {
+                        throw new InvalidOperationException("One-time note creation did not insert a row.");
+                    }
+
+                    return id;
+                }
+                catch (SqlException error) when (error.Number is 2601 or 2627)
+                {
+                    // The Notes primary key arbitrates collisions, including concurrent inserts.
+                }
+                catch (SqlException error)
+                {
+                    throw new InvalidOperationException($"One-time note creation failed (SQL Server error {error.Number}).");
+                }
             }
 
-            conn.Execute(new CommandDefinition(sql, dp));
-
-            return true;
+            throw new InvalidOperationException($"One-time note creation failed after {NoteInsertAttempts} identifier collisions.");
         }
 
-        public bool RemoveNote(string noteId)
+        internal string ConsumeNote(string noteId, string ipAddress, string fetchSite)
         {
-            using (var sql = new SqlConnection(ConnectionString))
-            {
-                var sqlCommand = "delete from notes where id = @noteId";
+            using var sql = new SqlConnection(ConnectionString);
+            const string consume = """
+                SET NOCOUNT ON;
+                SET XACT_ABORT ON;
 
-                return sql.Execute(sqlCommand, new { noteId }) > 0;
+                DECLARE @consumed TABLE (ID varchar(255) NOT NULL, NoteText varchar(max) NOT NULL);
+
+                BEGIN TRY
+                    BEGIN TRANSACTION;
+
+                    DELETE FROM dbo.Notes
+                    OUTPUT DELETED.ID, DELETED.NoteText INTO @consumed (ID, NoteText)
+                    WHERE ID = @noteId
+                        AND CreationDate > DATEADD(DAY, -30, GETDATE());
+
+                    IF EXISTS (SELECT 1 FROM @consumed)
+                    BEGIN
+                        INSERT INTO dbo.NoteViews (NoteID, ViewerIP, ViewTime)
+                        SELECT ID, @ipAddress, GETDATE() FROM @consumed;
+
+                        IF @@ROWCOUNT <> 1
+                            THROW 51000, 'One-time note view audit did not insert a row.', 1;
+
+                        IF @fetchSite IS NOT NULL
+                        BEGIN
+                            INSERT INTO dbo.NoteViewRequestHeaders (NoteId, Name, Value)
+                            SELECT ID, N'Sec-Fetch-Site', @fetchSite FROM @consumed;
+
+                            IF @@ROWCOUNT <> 1
+                                THROW 51001, 'One-time note request audit did not insert a row.', 1;
+                        END;
+                    END;
+
+                    COMMIT TRANSACTION;
+                END TRY
+                BEGIN CATCH
+                    IF XACT_STATE() <> 0
+                        ROLLBACK TRANSACTION;
+                    THROW;
+                END CATCH;
+
+                SELECT NoteText FROM @consumed;
+                """;
+
+            try
+            {
+                return sql.QuerySingleOrDefault<string>(consume, new
+                {
+                    noteId = new DbString { Value = noteId, Length = NoteIdCapacity, IsAnsi = true },
+                    ipAddress,
+                    fetchSite
+                });
+            }
+            catch (SqlException error)
+            {
+                // SQL Server error messages can include statement values. Keep them out of application logs.
+                throw new InvalidOperationException($"One-time note consumption failed (SQL Server error {error.Number}).");
             }
         }
     }

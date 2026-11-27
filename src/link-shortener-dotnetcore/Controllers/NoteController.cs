@@ -1,77 +1,53 @@
-﻿using Clc.LinkShortener.DotNetCore.Data;
+using Clc.LinkShortener.DotNetCore.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Clc.LinkShortener.DotNetCore.Controllers
 {
     [Authorize]
-    public class NoteController : Controller
+    public class NoteController(LinksDbHelper db, NoteWords words, ClientIp clientIp) : Controller
     {
-        LinksDbHelper db;
+        [HttpGet]
+        public ActionResult Index() => View();
 
-        public NoteController(LinksDbHelper _db)
-        {
-            db = _db;
-        }
-
-        public ActionResult Index()
-        {
-            return View();
-        }
-
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult Create(string noteText)
         {
-            var note = new Note { ID = GenerateShortURL(), CreationDate = DateTime.Now, Creator = User.Identity.Name, NoteText = noteText };
-            db.AddNote(note);
+            if (string.IsNullOrWhiteSpace(noteText))
+            {
+                ModelState.AddModelError(string.Empty, "Enter the text for your one-time note.");
+                return View("Index");
+            }
 
-            return View(note);
+            var id = db.AddNote(User.Identity.Name, noteText, words.Generate);
+            return View((object)id);
         }
 
         [AllowAnonymous]
-        public ActionResult Display(string id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [NoteRequestLimit(NoteRequestType.Consumption)]
+        public ActionResult Display([FromForm] string id)
         {
-            var note = db.GetNote(id);
-            if (note == null) return View("InvalidNote");
+            if (string.IsNullOrEmpty(id) || id.Length > LinksDbHelper.NoteIdCapacity)
+            {
+                return View("InvalidNote");
+            }
 
-            db.AddNoteView(id, Request.GetTrueClientIP());
-            db.WriteHeaders(id, ControllerContext.HttpContext);
-            db.RemoveNote(id);            
-
-            return View((object)note.NoteText);
+            var noteText = db.ConsumeNote(id, clientIp.Resolve(HttpContext), NoteRequests.GetFetchSite(Request));
+            return noteText == null ? View("InvalidNote") : View((object)noteText);
         }
 
         [AllowAnonymous]
-        public ActionResult Warning(string noteId)
-        {
-            return View((object)noteId);
-        }
+        [HttpGet]
+        [ActionName(nameof(Display))]
+        [NoteRequestLimit(NoteRequestType.Warning)]
+        public ActionResult ConfirmDisplay(string id) => View("Warning", (object)id);
 
-        private string GenerateShortURL()
-        {
-            var urlLength = 5;
-            var rand = new Random();
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
-            var linkBuilder = new StringBuilder();
-
-            for (int i = 0; i < urlLength; i++)
-            {
-                linkBuilder.Append(chars[rand.Next(chars.Length)]);
-            }
-
-            var shortURL = linkBuilder.ToString();
-
-
-            if (db.GetNote(shortURL) != null)
-            {
-                shortURL = GenerateShortURL();
-            }
-
-            return shortURL;
-        }
+        [AllowAnonymous]
+        [HttpGet]
+        [NoteRequestLimit(NoteRequestType.Warning)]
+        public ActionResult Warning(string noteId) => View((object)noteId);
     }
 }
