@@ -1,4 +1,4 @@
-using Clc.LinkShortener.DotNetCore.Data;
+using Clc.LinkShortener.Data;
 using Dapper;
 using Microsoft.Data.SqlClient;
 

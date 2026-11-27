@@ -1,5 +1,5 @@
 using Clc.Authentication;
-using Clc.LinkShortener.DotNetCore.Data;
+using Clc.LinkShortener.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +7,7 @@ using System;
 using System.Linq;
 using System.Text;
 
-namespace Clc.LinkShortener.DotNetCore.Controllers
+namespace Clc.LinkShortener.Controllers
 {
     [Authorize]
     public class LinkController : Controller

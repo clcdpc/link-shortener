@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace Clc.LinkShortener.DotNetCore.Data
+namespace Clc.LinkShortener.Data
 {
     public sealed class NoteWords
     {
-        private const string ResourceName = "Clc.LinkShortener.DotNetCore.Resources.note-words.txt";
+        private const string ResourceName = "Clc.LinkShortener.Resources.note-words.txt";
         private const int WordCount = 5521;
         private readonly string[] words;
 

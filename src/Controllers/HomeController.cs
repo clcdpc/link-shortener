@@ -1,4 +1,4 @@
-using Clc.LinkShortener.DotNetCore.Models;
+using Clc.LinkShortener.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;

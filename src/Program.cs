@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Clc.LinkShortener.DotNetCore
+namespace Clc.LinkShortener
 {
     public class Program
     {

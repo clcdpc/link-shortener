@@ -1,6 +1,6 @@
 using System;
 
-namespace Clc.LinkShortener.DotNetCore.Models
+namespace Clc.LinkShortener.Models
 {
     public class ErrorViewModel
     {

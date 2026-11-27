@@ -1,8 +1,8 @@
-using Clc.LinkShortener.DotNetCore.Data;
+using Clc.LinkShortener.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Clc.LinkShortener.DotNetCore.Controllers
+namespace Clc.LinkShortener.Controllers
 {
     [Authorize]
     public class NoteController(LinksDbHelper db, NoteWords words, ClientIp clientIp) : Controller

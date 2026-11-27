@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 
-namespace Clc.LinkShortener.DotNetCore.Data
+namespace Clc.LinkShortener.Data
 {
     public class LinksDbHelper
     {

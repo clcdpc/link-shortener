@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Clc.LinkShortener.DotNetCore.Data;
+using Clc.LinkShortener.Data;
 
 namespace LinkShortener.Tests;
 
@@ -9,7 +9,7 @@ public class NoteWordsTests
     public void UsesAuthoritativeEmbeddedDictionary()
     {
         using var stream = typeof(NoteWords).Assembly
-            .GetManifestResourceStream("Clc.LinkShortener.DotNetCore.Resources.note-words.txt");
+            .GetManifestResourceStream("Clc.LinkShortener.Resources.note-words.txt");
         Assert.NotNull(stream);
         Assert.Equal("BB7DDA84D5037F24D85A3788ADFD070E9CA716BC31409615DF5F2F5B79498818",
             Convert.ToHexString(SHA256.HashData(stream)));
