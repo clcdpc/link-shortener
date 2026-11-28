@@ -1,8 +1,12 @@
 ﻿@model Link
 
-Your link was created: @Html.TextBox("fullurl", String.Format("{0}/{1}","https://go.clcohio.org",Model.ShortURL))
+@{
+    var shareUrl = Url.RouteUrl("Follow ShortUrl", new { shortUrl = Model.ShortURL }, Context.Request.Scheme);
+}
+
+Your link was created: @Html.TextBox("fullurl", shareUrl)
 <br/>
-<a href="@String.Format("{0}/{1}","https://go.clcohio.org",Model.ShortURL)">@String.Format("{0}/{1}","https://go.clcohio.org",Model.ShortURL)</a>
+<a href="@shareUrl">@shareUrl</a>
 
 <script type="text/javascript">
     $(document).ready(function () {
