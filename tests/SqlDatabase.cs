@@ -24,7 +24,7 @@ public sealed class SqlDatabase : IAsyncLifetime
     private SqlConnectionStringBuilder testDatabase;
     private bool created;
 
-    public LinksDbHelper Helper => new(testDatabase);
+    public LinkShortenerDb Helper => new(testDatabase);
 
     public async Task InitializeAsync()
     {

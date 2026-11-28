@@ -1,11 +1,12 @@
 using Clc.LinkShortener.Data;
+using Clc.LinkShortener.Notes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Clc.LinkShortener.Controllers
 {
     [Authorize]
-    public class NoteController(LinksDbHelper db, NoteWords words, ClientIp clientIp) : Controller
+    public class NoteController(LinkShortenerDb db, NoteWords words, ClientIp clientIp) : Controller
     {
         [HttpGet]
         public ActionResult Index() => View();
@@ -30,7 +31,7 @@ namespace Clc.LinkShortener.Controllers
         [NoteRequestLimit(NoteRequestType.Consumption)]
         public ActionResult Display([FromForm] string id)
         {
-            if (string.IsNullOrEmpty(id) || id.Length > LinksDbHelper.NoteIdCapacity)
+            if (string.IsNullOrEmpty(id) || id.Length > LinkShortenerDb.NoteIdCapacity)
             {
                 return View("InvalidNote");
             }

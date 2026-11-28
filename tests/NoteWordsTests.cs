@@ -1,5 +1,5 @@
 using System.Security.Cryptography;
-using Clc.LinkShortener.Data;
+using Clc.LinkShortener.Notes;
 
 namespace LinkShortener.Tests;
 

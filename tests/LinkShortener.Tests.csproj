@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="../../src/Clc.LinkShortener.csproj" />
+    <ProjectReference Include="../src/LinkShortener.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.10" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -17,6 +17,6 @@
     <Using Include="Xunit" />
     <None Update="test-settings.json" TargetPath="config/settings.json" CopyToOutputDirectory="PreserveNewest" />
     <None Update="fixtures.sql" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../../sql/verify-note-schema.sql" Link="verify-note-schema.sql" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../sql/verify-note-schema.sql" Link="verify-note-schema.sql" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

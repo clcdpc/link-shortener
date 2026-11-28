@@ -1,3 +1,4 @@
+using Clc.LinkShortener.Models;
 using Dapper;
 using System;
 using System.Collections.Generic;
@@ -5,11 +6,11 @@ using Microsoft.Data.SqlClient;
 
 namespace Clc.LinkShortener.Data
 {
-    public class LinksDbHelper
+    public class LinkShortenerDb
     {
         public string ConnectionString { get; }
 
-        public LinksDbHelper(string databaseHostname)
+        public LinkShortenerDb(string databaseHostname)
             : this(new SqlConnectionStringBuilder
             {
                 DataSource = databaseHostname,
@@ -20,7 +21,7 @@ namespace Clc.LinkShortener.Data
         {
         }
 
-        internal LinksDbHelper(SqlConnectionStringBuilder connection)
+        internal LinkShortenerDb(SqlConnectionStringBuilder connection)
         {
             ConnectionString = connection.ConnectionString;
         }

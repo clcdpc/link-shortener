@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 
-namespace Clc.LinkShortener.Data
+namespace Clc.LinkShortener.Notes
 {
     public sealed class NoteWords
     {

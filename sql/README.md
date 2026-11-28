@@ -58,9 +58,9 @@ Note responses send `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, a
 ## Local verification
 
 ```powershell
-dotnet test tests/LinkShortener.Tests/LinkShortener.Tests.csproj
+dotnet test tests/LinkShortener.Tests.csproj
 $env:LINK_SHORTENER_TEST_SQL = 'Server=localhost;Integrated Security=true;TrustServerCertificate=true'
-dotnet test tests/LinkShortener.Tests/LinkShortener.Tests.csproj
+dotnet test tests/LinkShortener.Tests.csproj
 ```
 
-The tests reference the application and its existing build dependencies. SQL tests are skipped unless `LINK_SHORTENER_TEST_SQL` is set. Use a disposable SQL Server instance and a login allowed to create and drop databases. Tests create a randomly named database with the development note schema, seed synthetic data, and clean up that database. They run without Agent. To exercise the Agent installation twice and verify the hourly schedule, use an isolated Agent-capable instance with a test database named `LinkShortener` initialized from [the test fixture](../tests/LinkShortener.Tests/fixtures.sql). Seed a fresh and an expired row, run the job, then inspect the remaining rows and job history.
+The tests reference the application and its existing build dependencies. SQL tests are skipped unless `LINK_SHORTENER_TEST_SQL` is set. Use a disposable SQL Server instance and a login allowed to create and drop databases. Tests create a randomly named database with the development note schema, seed synthetic data, and clean up that database. They run without Agent. To exercise the Agent installation twice and verify the hourly schedule, use an isolated Agent-capable instance with a test database named `LinkShortener` initialized from [the test fixture](../tests/fixtures.sql). Seed a fresh and an expired row, run the job, then inspect the remaining rows and job history.
