@@ -30,7 +30,7 @@ Check the most recent job history after execution completes. Each run permanentl
 
 ## 3. Configure the proxy and deploy the application
 
-By default, link visits, note audits, and note rate limits use the connection peer address. To distinguish visitors behind a Cloudflare Tunnel, enable forwarding in `config/settings.json` and list the connector addresses that ASP.NET Core sees at IIS. Replace the example IPv4 and IPv6 addresses with your connectors' addresses. [Clc.Cloudflare.AspNetCore](https://www.nuget.org/packages/Clc.Cloudflare.AspNetCore/)
+By default, link visits, note audits, and note rate limits use the connection peer address. To distinguish visitors behind a Cloudflare Tunnel, enable forwarding in `C:\ProgramData\clc-link-shortener\Config\application.json` and list the connector addresses that ASP.NET Core sees at IIS. Replace the example IPv4 and IPv6 addresses with your connectors' addresses. [Clc.Cloudflare.AspNetCore](https://www.nuget.org/packages/Clc.Cloudflare.AspNetCore/)
 
 ```json
 {
@@ -43,18 +43,20 @@ By default, link visits, note audits, and note rate limits use the connection pe
 
 When upgrading, replace `ClientIp:TrustedProxyNetworks` with `Cloudflare:TrustedNetworks`, verify the ranges against the immediate peers, and set `Cloudflare:Enabled` to `true`. The package accepts a single address in `CF-Connecting-IP` from a trusted peer. If you used `ClientIp:ForwardedHeaderName`, configure the intermediary to verify its upstream and overwrite `CF-Connecting-IP` with the visitor address. Restart the application after changing these settings. With forwarding disabled, visitors behind one connector share its rate limit.
 
-Deploy the .NET 10 application after the database preflight and job installation. The IIS application identity needs SELECT, INSERT, and DELETE on dbo.Notes and INSERT on both note audit tables. The artifact contains the supplied 5,521 words as an embedded resource and validates them at startup. No dictionary file is needed on IIS.
+Confirm the existing cleanup job and run the database preflight before cutover. The IIS application identity needs SELECT, INSERT, and DELETE on dbo.Notes and INSERT on both note audit tables. The artifact contains the supplied 5,521 words as an embedded resource and validates them at startup. Follow the manual cutover and rollback procedure for the existing IIS site. [IIS cutover](../README.md#manual-cutover)
 
-Consumption uses fixed windows of 10 attempts per minute and 100 per hour per client IP, plus 300 per minute across the application instance. The shared confirmation-page limit is 30 GETs per minute per client IP, including legacy display GETs. Rejected requests return HTTP 429 without reaching the database. These in-memory windows are per instance and reset on recycle. A deployment with multiple instances has an independent application-wide counter on each instance. Share ASP.NET Core Data Protection keys across instances so that any instance can validate the antiforgery token issued on the warning page. [ASP.NET Core web farm configuration](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/web-farm?view=aspnetcore-10.0)
+Consumption uses fixed windows of 10 attempts per minute and 100 per hour per client IP, plus 300 per minute across the application instance. The shared confirmation-page limit is 30 GETs per minute per client IP, including legacy display GETs. Rejected requests return HTTP 429 without reaching the database. These in-memory windows are per instance and reset on recycle. The documented deployment uses one Windows host with a persistent, user-scoped DPAPI key ring.
 
 Note responses send `Cache-Control: no-store`, `Referrer-Policy: no-referrer`, and `X-Robots-Tag: noindex, nofollow`. Keep CDN cache overrides off the note routes. IIS, Cloudflare, and other infrastructure can still record request paths or query strings. Review those settings and access controls for `/note` traffic to avoid capturing share links. Keep verbose HTTP, MVC, and SQL tracing off for note requests and review any diagnostics that include request bodies or SQL parameter values.
 
 ## 4. Verify after deployment
 
-1. Confirm the app starts and create a note. Check that its share URL contains four hyphen-separated lowercase words.
+1. Open the public HTTPS site, confirm Entra sign-in returns to the same site, and check that an authorized account can list its links. Follow a known short link and confirm both its destination and the visitor address in `dbo.LinkVisits`. Create a disposable note. Check that its share URL contains four hyphen-separated lowercase words.
 2. Open a new note URL and an available legacy five-character URL. Each GET should show the warning. Submit each form, then check that a second submission shows the unavailable response.
 3. Check that expired and missing notes produce the same unavailable response. In a disposable database, confirm expiration with SQL Server Agent stopped, then run the cleanup and verify it removes expired rows while retaining fresh rows.
-4. Check that the note-view audit records the client address and SQL Server local view time. The request-header audit can contain a recognized `Sec-Fetch-Site` category. Verify the trusted address behind the proxy and repeat enough requests to see HTTP 429 without affecting short-link redirects.
+4. Check `dbo.NoteViews.ViewerIP` and SQL Server local view time for the disposable note. The request-header audit can contain a recognized `Sec-Fetch-Site` category. When forwarding is enabled, confirm both visit and note audit rows contain the visitor's IP through the trusted connector. From a dedicated test client, issue 31 confirmation GETs in one minute. Expect HTTP 429 by request 31 and a working short-link redirect afterward.
+5. Inspect `Logs\clc-link-shortener-yyyy-MM-dd.log` under the application data root. Look for a startup entry with local time and offset. Clc.Logging writes plaintext, rolls daily or at 50 MiB and defaults to 30 days and 300 archives. File failure falls back to stderr. Set levels and optional file limits in the external `Logging` section. The application suppresses ASP.NET Core diagnostics below Warning to protect note URLs and bound arguments.
+6. While signed in, open a fresh note confirmation form. Check for an encrypted key file in `Keys\`, recycle the existing application pool, and submit the still-open form. Confirm it succeeds once, sign-in survives, and a new startup entry appears. Reuse the same pool account and profile on subsequent deployments. Limit backups of the key ring and profile to approved operators.
 
 ## Local verification
 

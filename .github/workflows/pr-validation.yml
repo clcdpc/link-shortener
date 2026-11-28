@@ -35,4 +35,18 @@ jobs:
         run: dotnet test LinkShortener.sln --configuration Release --no-build --logger "console;verbosity=normal"
 
       - name: Verify publish
-        run: dotnet publish "$env:APP_PROJECT" --configuration Release --no-build --output artifacts/publish
+        shell: pwsh
+        run: |
+          # Exercise the exclusions on a clean runner with synthetic operational files.
+          '{}' | Set-Content src/config/application.json
+          '{}' | Set-Content src/config/settings.json
+          dotnet publish "$env:APP_PROJECT" --configuration Release --no-build --output artifacts/publish
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          $output = 'artifacts/publish'
+          $example = Join-Path $output 'config/example.json'
+          if (!(Test-Path -LiteralPath $example -PathType Leaf)) { throw 'Missing configuration example.' }
+          if ((Get-FileHash $example).Hash -ne (Get-FileHash 'src/config/example.json').Hash) { throw 'Unexpected example contents.' }
+          if (@(Get-ChildItem "$output/config" -File -Recurse).Count -ne 1) { throw 'Unexpected published configuration.' }
+          if (Get-ChildItem $output -Recurse -File -Include application.json,settings*.json,appsettings*.json,key-*.xml,*.log) {
+            throw 'Operational files found in publish output.'
+          }

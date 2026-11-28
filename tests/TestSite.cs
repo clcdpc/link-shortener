@@ -19,32 +19,26 @@ namespace LinkShortener.Tests;
 
 internal sealed class TestSite : IDisposable
 {
-    private readonly IHost host;
+    private readonly WebApplication host;
+    private readonly TestApplicationDirectory directory = new();
 
     public TestSite(LinkShortenerDb database = null)
     {
-        host = new HostBuilder()
-            .UseEnvironment("Testing")
-            .ConfigureLogging(logging => logging.SetMinimumLevel(LogLevel.Warning))
-            .ConfigureWebHost(webHost => webHost
-                .UseTestServer()
-                .UseContentRoot(AppContext.BaseDirectory)
-                .UseStartup<Startup>()
-                .ConfigureTestServices(services =>
-                {
-                    services.RemoveAll<IClaimsTransformation>();
-                    services.AddSingleton<IClaimsTransformation, IdentityClaims>();
-                    services.AddAuthentication(options => options.DefaultScheme = TestIdentity.SchemeName)
-                        .AddScheme<AuthenticationSchemeOptions, TestIdentity>(TestIdentity.SchemeName, _ => { });
-                    services.PostConfigure<AuthorizationOptions>(options =>
-                        options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
-                    services.AddSingleton<IStartupFilter, TestPeer>();
-                    if (database != null)
-                    {
-                        services.Replace(ServiceDescriptor.Singleton(database));
-                    }
-                }))
-            .Start();
+        var builder = directory.CreateBuilder();
+        Program.AddServices(builder);
+        var services = builder.Services;
+        services.RemoveAll<IClaimsTransformation>();
+        services.AddSingleton<IClaimsTransformation, IdentityClaims>();
+        services.AddAuthentication(options => options.DefaultScheme = TestIdentity.SchemeName)
+            .AddScheme<AuthenticationSchemeOptions, TestIdentity>(TestIdentity.SchemeName, _ => { });
+        services.PostConfigure<AuthorizationOptions>(options =>
+            options.DefaultPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
+        services.AddSingleton<IStartupFilter, TestPeer>();
+        if (database != null)
+            services.Replace(ServiceDescriptor.Singleton(database));
+
+        host = Program.BuildApplication(builder);
+        host.Start();
 
         Client = host.GetTestClient();
         Client.BaseAddress = new Uri("https://localhost");
@@ -79,7 +73,8 @@ internal sealed class TestSite : IDisposable
     public void Dispose()
     {
         Client.Dispose();
-        host.Dispose();
+        ((IHost)host).Dispose();
+        directory.Dispose();
     }
 
     private sealed class IdentityClaims : IClaimsTransformation

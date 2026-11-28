@@ -10,7 +10,8 @@
     "TrustedNetworks": ["192.0.2.2/32", "2001:db8:1::2/128"]
   },
   "Clc": {
-    "ApplicationName": "LinkShortener",
+    "ApplicationName": "link-shortener",
     "DatabaseServer": "localhost"
-  }
+  },
+  "AllowedHosts": "localhost"
 }
