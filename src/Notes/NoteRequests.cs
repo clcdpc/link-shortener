@@ -34,14 +34,14 @@ namespace Clc.LinkShortener.Notes
             await next(context);
         }
 
-        internal static void ConfigureLimits(RateLimiterOptions options, ClientIp clientIp)
+        internal static void ConfigureLimits(RateLimiterOptions options)
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.GlobalLimiter = PartitionedRateLimiter.CreateChained(
-                Window(NoteRequestType.Consumption, clientIp.Resolve, 10, TimeSpan.FromMinutes(1)),
-                Window(NoteRequestType.Consumption, clientIp.Resolve, 100, TimeSpan.FromHours(1)),
+                Window(NoteRequestType.Consumption, HttpContextExtensions.GetClientIp, 10, TimeSpan.FromMinutes(1)),
+                Window(NoteRequestType.Consumption, HttpContextExtensions.GetClientIp, 100, TimeSpan.FromHours(1)),
                 Window(NoteRequestType.Consumption, _ => "application", 300, TimeSpan.FromMinutes(1)),
-                Window(NoteRequestType.Warning, clientIp.Resolve, 30, TimeSpan.FromMinutes(1)));
+                Window(NoteRequestType.Warning, HttpContextExtensions.GetClientIp, 30, TimeSpan.FromMinutes(1)));
         }
 
         private static PartitionedRateLimiter<HttpContext> Window(

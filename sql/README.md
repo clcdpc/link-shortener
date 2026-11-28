@@ -30,17 +30,18 @@ Check the most recent job history after execution completes. Each run permanentl
 
 ## 3. Configure the proxy and deploy the application
 
-The application uses the connection peer address by default. When that peer is inside a configured trusted range, it can use a single address from `CF-Connecting-IP`. Add the current Cloudflare IPv4 and IPv6 ranges to `ClientIp:TrustedProxyNetworks` in the existing `config/settings.json` and keep them current. This example uses documentation addresses that must be replaced. [Cloudflare IP ranges](https://www.cloudflare.com/ips/) · [Cloudflare visitor IP headers](https://developers.cloudflare.com/fundamentals/reference/http-headers/)
+By default, link visits, note audits, and note rate limits use the connection peer address. To distinguish visitors behind a Cloudflare Tunnel, enable forwarding in `config/settings.json` and list the connector addresses that ASP.NET Core sees at IIS. Replace the example IPv4 and IPv6 addresses with your connectors' addresses. [Clc.Cloudflare.AspNetCore](https://www.nuget.org/packages/Clc.Cloudflare.AspNetCore/)
 
 ```json
 {
-  "ClientIp": {
-    "TrustedProxyNetworks": ["192.0.2.0/24", "2001:db8::/32"]
+  "Cloudflare": {
+    "Enabled": true,
+    "TrustedNetworks": ["192.0.2.10/32", "2001:db8::10/128"]
   }
 }
 ```
 
-For an intermediary between Cloudflare and IIS, configure that intermediary to verify upstream Cloudflare peers and overwrite the client-address header on every request. Trust only the addresses of those intermediaries as seen by the ASP.NET Core app. If the intermediary writes a different single-address header, set `ClientIp:ForwardedHeaderName` to its name. Check what IIS exposes as the peer before finalizing the ranges, particularly with out-of-process IIS hosting or additional forwarding middleware. An unconfigured proxy is counted as one peer and shares its rate limit across visitors.
+When upgrading, replace `ClientIp:TrustedProxyNetworks` with `Cloudflare:TrustedNetworks`, verify the ranges against the immediate peers, and set `Cloudflare:Enabled` to `true`. The package accepts a single address in `CF-Connecting-IP` from a trusted peer. If you used `ClientIp:ForwardedHeaderName`, configure the intermediary to verify its upstream and overwrite `CF-Connecting-IP` with the visitor address. Restart the application after changing these settings. With forwarding disabled, visitors behind one connector share its rate limit.
 
 Deploy the .NET 10 application after the database preflight and job installation. The IIS application identity needs SELECT, INSERT, and DELETE on dbo.Notes and INSERT on both note audit tables. The artifact contains the supplied 5,521 words as an embedded resource and validates them at startup. No dictionary file is needed on IIS.
 

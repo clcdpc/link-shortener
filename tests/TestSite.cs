@@ -51,6 +51,7 @@ internal sealed class TestSite : IDisposable
     }
 
     public HttpClient Client { get; }
+    public TestServer Server => host.GetTestServer();
 
     public async Task<(string Cookie, string Token)> AntiforgeryAsync(string path)
     {
