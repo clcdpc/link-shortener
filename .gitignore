@@ -407,3 +407,9 @@ FodyWeavers.xsd
 [Aa]pp[Ss]ettings.[Dd]evelopment.json
 #Config
 [Cc]onfig
+!/src/config/
+/src/config/*
+!/src/config/example.json
+/src/appsettings*.json
+application.json
+[Kk]eys/

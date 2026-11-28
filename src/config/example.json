@@ -1,0 +1,27 @@
+{
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "Domain": "REPLACE_ME.onmicrosoft.com",
+    "TenantId": "REPLACE_ME",
+    "ClientId": "REPLACE_ME",
+    "ClientSecret": "REPLACE_ME",
+    "CallbackPath": "/signin-oidc"
+  },
+  "Clc": {
+    "ApplicationName": "link-shortener",
+    "DatabaseServer": "REPLACE_ME"
+  },
+  "Cloudflare": {
+    "Enabled": false,
+    "TrustedNetworks": []
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information",
+      "System.Net.Http": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}
