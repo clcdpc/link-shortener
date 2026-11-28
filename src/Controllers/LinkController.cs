@@ -14,12 +14,10 @@ namespace Clc.LinkShortener.Controllers
     public class LinkController : Controller
     {
         private readonly LinkShortenerDb db;
-        private readonly ClientIp clientIp;
 
-        public LinkController(LinkShortenerDb db, ClientIp clientIp)
+        public LinkController(LinkShortenerDb db)
         {
             this.db = db;
-            this.clientIp = clientIp;
         }
 
         public IActionResult Index()
@@ -106,7 +104,7 @@ namespace Clc.LinkShortener.Controllers
         {
             var link = db.GetShortUrl(shortUrl);
             if (link == null) return View("InvalidShortURL");
-            db.AddLinkVisit(shortUrl, clientIp.Resolve(HttpContext), Request.GetTypedHeaders().Referer?.ToString());
+            db.AddLinkVisit(shortUrl, HttpContext.GetClientIp(), Request.GetTypedHeaders().Referer?.ToString());
             return Redirect(link.URL);
         }
 

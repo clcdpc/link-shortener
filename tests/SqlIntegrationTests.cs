@@ -180,6 +180,8 @@ public class SqlIntegrationTests(SqlDatabase database) : IClassFixture<SqlDataba
         Assert.Equal(HttpStatusCode.Redirect, ownerPost.StatusCode);
 
         site.Client.DefaultRequestHeaders.Remove("X-Test-User");
+        site.Client.DefaultRequestHeaders.Add("X-Test-Peer", "192.0.2.2");
+        site.Client.DefaultRequestHeaders.Add("CF-Connecting-IP", "198.51.100.5");
         for (var attempt = 0; attempt < 10; attempt++)
         {
             using var rejected = await site.Client.PostAsync("/Note/Display", null);
@@ -192,5 +194,7 @@ public class SqlIntegrationTests(SqlDatabase database) : IClassFixture<SqlDataba
         Assert.Equal(HttpStatusCode.Redirect, followed.StatusCode);
         Assert.Equal("https://example.test/owner", followed.Headers.Location?.OriginalString);
         Assert.False(followed.Headers.Contains("Referrer-Policy"));
+        Assert.Equal("198.51.100.5", await database.ReadAsync<string>(
+            "SELECT VisitorIP FROM dbo.LinkVisits WHERE ShortURL = 'demo-link';"));
     }
 }

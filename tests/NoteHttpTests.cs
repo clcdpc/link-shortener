@@ -91,13 +91,14 @@ public class NoteHttpTests
     public async Task ApplicationLimitCapsConsumptionAcrossClients()
     {
         using var site = new TestSite();
+        site.Client.DefaultRequestHeaders.Add("X-Test-Peer", "192.0.2.2");
         for (var client = 1; client <= 31; client++)
         {
             var expected = client <= 30 ? HttpStatusCode.BadRequest : HttpStatusCode.TooManyRequests;
             for (var attempt = 0; attempt < 10; attempt++)
             {
                 using var request = new HttpRequestMessage(HttpMethod.Post, "/Note/Display");
-                request.Headers.Add("X-Test-Peer", $"192.0.2.{client}");
+                request.Headers.Add("CF-Connecting-IP", $"198.51.100.{client}");
                 using var response = await site.Client.SendAsync(request);
                 Assert.Equal(expected, response.StatusCode);
             }

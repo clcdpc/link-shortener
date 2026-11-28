@@ -5,6 +5,10 @@
     "ClientId": "00000000-0000-0000-0000-000000000002",
     "CallbackPath": "/signin-oidc"
   },
+  "Cloudflare": {
+    "Enabled": true,
+    "TrustedNetworks": ["192.0.2.2/32", "2001:db8:1::2/128"]
+  },
   "Clc": {
     "ApplicationName": "LinkShortener",
     "DatabaseServer": "localhost"

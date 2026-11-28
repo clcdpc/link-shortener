@@ -1,4 +1,5 @@
 using Clc.Authentication;
+using Clc.Cloudflare.AspNetCore;
 using Clc.LinkShortener.Data;
 using Clc.LinkShortener.Notes;
 using Microsoft.AspNetCore.Authorization;
@@ -62,15 +63,16 @@ namespace Clc.LinkShortener
 
             services.AddSingleton(Configuration);
             services.AddSingleton(NoteWords.Load());
-            var clientIp = new ClientIp(Configuration);
-            services.AddSingleton(clientIp);
-            services.AddRateLimiter(options => NoteRequests.ConfigureLimits(options, clientIp));
+            services.AddClcCloudflare(Configuration);
+            services.AddRateLimiter(NoteRequests.ConfigureLimits);
             services.AddScoped(_ => new LinkShortenerDb(databaseServer));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseClcCloudflare();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

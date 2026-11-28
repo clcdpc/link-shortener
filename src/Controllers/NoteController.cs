@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Clc.LinkShortener.Controllers
 {
     [Authorize]
-    public class NoteController(LinkShortenerDb db, NoteWords words, ClientIp clientIp) : Controller
+    public class NoteController(LinkShortenerDb db, NoteWords words) : Controller
     {
         [HttpGet]
         public ActionResult Index() => View();
@@ -36,7 +36,7 @@ namespace Clc.LinkShortener.Controllers
                 return View("InvalidNote");
             }
 
-            var noteText = db.ConsumeNote(id, clientIp.Resolve(HttpContext), NoteRequests.GetFetchSite(Request));
+            var noteText = db.ConsumeNote(id, HttpContext.GetClientIp(), NoteRequests.GetFetchSite(Request));
             return noteText == null ? View("InvalidNote") : View((object)noteText);
         }
 
