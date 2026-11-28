@@ -11,7 +11,7 @@
 <table>
     <tr>
         <td> URL </td>
-        <td> @Html.EditorFor(x => x.URL) </td>
+        <td> @Html.EditorFor(x => x.URL) @Html.ValidationMessageFor(x => x.URL) </td>
     </tr>
     <tr>
         <td colspan="2"> <input type="submit" /></td>

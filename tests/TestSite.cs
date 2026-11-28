@@ -25,6 +25,7 @@ internal sealed class TestSite : IDisposable
     public TestSite(LinkShortenerDb database = null)
     {
         var builder = directory.CreateBuilder();
+        builder.WebHost.UseStaticWebAssets();
         Program.AddServices(builder);
         var services = builder.Services;
         services.RemoveAll<IClaimsTransformation>();

@@ -28,7 +28,7 @@
     @Html.ActionLink("Manage My Links", "List", null, htmlAttributes: new { style = "font-size:14px" })
     <br/>
     <p>Bookmarklet (Drag onto bookmarks bar)
-        <a href="javascript:(function(){document.body.appendChild(document.createElement('script')).src='//go.clcohio.org/scripts/bookmarklet.js';})();">Shorten Link</a></p>
+        <a href="javascript:void(window.open('https://go.clcohio.org/?url='+encodeURIComponent(location.href),'_blank','noopener'))">Shorten Link</a></p>
     
     
 

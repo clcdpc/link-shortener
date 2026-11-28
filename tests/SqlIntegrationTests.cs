@@ -143,6 +143,67 @@ public class SqlIntegrationTests(SqlDatabase database) : IClassFixture<SqlDataba
     }
 
     [SqlFact]
+    public async Task CreationRedirectsByIdentifierAndConfirmationReadsTheStoredLink()
+    {
+        using var site = new TestSite(database.Helper);
+        site.Client.DefaultRequestHeaders.Add("X-Test-User", "link.author");
+        const string https = "https://example.test/a%2Fb?q=1&next=x%26y+z#part%202";
+        var token = await site.AntiforgeryAsync("/?url=" + Uri.EscapeDataString(https));
+        Assert.Equal(0, await database.ReadAsync<int>("SELECT COUNT(*) FROM dbo.Links WHERE Creator = 'link.author'"));
+
+        foreach (var (input, expected, customId) in new[]
+        {
+            (https, https, "custom-link"),
+            ("http://example.test", "http://example.test", ""),
+            ("example.test:8080/page", "http://example.test:8080/page", ""),
+            ("example.test/path?q=http://other.test#section", "http://example.test/path?q=http://other.test#section", "")
+        })
+        {
+            using var created = await site.PostAsync("/Link/CreateLink", token, ("URL", input), ("ShortURL", customId));
+            Assert.Equal(HttpStatusCode.Redirect, created.StatusCode);
+            var id = await database.ReadAsync<string>("SELECT ShortURL FROM dbo.Links WHERE URL = @expected", new { expected });
+            if (customId.Length > 0) Assert.Equal(customId, id);
+            else Assert.Matches("^[A-Za-z0-9]{5}$", id);
+            Assert.Equal($"/Link/LinkCreated?shortUrl={id}", created.Headers.Location?.OriginalString);
+            var html = await site.Client.GetStringAsync(created.Headers.Location);
+            Assert.Equal($"https://go.clcohio.org/{id}", LinkHttpTests.InputValue(html, "fullurl"));
+        }
+
+        var missing = await site.Client.GetStringAsync("/Link/LinkCreated?shortUrl=unknown&URL=https://example.test");
+        Assert.Contains("link you're looking for is invalid", missing);
+    }
+
+    [SqlFact]
+    public async Task InvalidCreateAndEditPreserveTheDatabaseAndEditShowsTheAttemptedUrl()
+    {
+        const string id = "edit-check";
+        const string original = "http://example.test/original";
+        const string invalid = "ftp://example.test/file";
+        database.Helper.InsertShortUrl(id, original, "edit.owner");
+        using var site = new TestSite(database.Helper);
+        site.Client.DefaultRequestHeaders.Add("X-Test-User", "edit.owner");
+        var token = await site.AntiforgeryAsync("/");
+        using var create = await site.PostAsync("/Link/CreateLink", token, ("URL", invalid), ("ShortURL", "invalid-create"));
+        Assert.Equal(HttpStatusCode.OK, create.StatusCode);
+        Assert.Null(database.Helper.GetShortUrl("invalid-create"));
+
+        using var edit = await site.PostAsync("/Link/Edit", token, ("url", invalid), ("shortUrl", id));
+        Assert.Equal(HttpStatusCode.OK, edit.StatusCode);
+        var html = await edit.Content.ReadAsStringAsync();
+        Assert.Contains("Enter a valid HTTP or HTTPS destination URL.", html);
+        Assert.Equal(invalid, LinkHttpTests.InputValue(html, "URL"));
+        Assert.Equal(id, LinkHttpTests.InputValue(html, "ShortURL"));
+        var saved = database.Helper.GetShortUrl(id);
+        Assert.Equal(original, saved.URL);
+        Assert.Null(saved.ModifiedDate);
+
+        const string bare = "www.example.test/a%2Fb?x=1&y=%23#fragment";
+        using var validEdit = await site.PostAsync("/Link/Edit", token, ("url", bare), ("shortUrl", id));
+        Assert.Equal(HttpStatusCode.Redirect, validEdit.StatusCode);
+        Assert.Equal("http://" + bare, database.Helper.GetShortUrl(id).URL);
+    }
+
+    [SqlFact]
     public async Task LinkEditRequiresOwnershipOrAdminAndRedirectsAreExemptFromNoteLimits()
     {
         await database.ExecuteAsync("""
