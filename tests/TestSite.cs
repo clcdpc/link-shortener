@@ -22,9 +22,11 @@ internal sealed class TestSite : IDisposable
     private readonly WebApplication host;
     private readonly TestApplicationDirectory directory = new();
 
-    public TestSite(LinkShortenerDb database = null)
+    public TestSite(LinkShortenerDb database = null, Uri baseAddress = null)
     {
         var builder = directory.CreateBuilder();
+        if (baseAddress != null)
+            builder.Configuration["AllowedHosts"] = baseAddress.Host;
         Program.AddServices(builder);
         var services = builder.Services;
         services.RemoveAll<IClaimsTransformation>();
@@ -41,7 +43,7 @@ internal sealed class TestSite : IDisposable
         host.Start();
 
         Client = host.GetTestClient();
-        Client.BaseAddress = new Uri("https://localhost");
+        Client.BaseAddress = baseAddress ?? new Uri("https://localhost");
     }
 
     public HttpClient Client { get; }

@@ -4,6 +4,9 @@ namespace LinkShortener.Tests;
 
 public class SqlIntegrationTests(SqlDatabase database) : IClassFixture<SqlDatabase>
 {
+    private static readonly string[] ShareOrigins =
+        ["https://go.clcohio.org", "https://devgo.clcohio.org", "http://localhost:5001"];
+
     [SqlFact]
     public async Task PrimaryKeyCollisionsRegenerateAndHaveABoundedRetry()
     {
@@ -127,19 +130,24 @@ public class SqlIntegrationTests(SqlDatabase database) : IClassFixture<SqlDataba
     [SqlFact]
     public async Task NoteCreationFormStoresAWordIdentifierAndReturnsOnlyItsLink()
     {
-        using var site = new TestSite(database.Helper);
-        site.Client.DefaultRequestHeaders.Add("X-Test-User", "note.author");
-        var token = await site.AntiforgeryAsync("/Note/Index");
         const string noteText = "only the person who confirms should see the text";
-        using var response = await site.PostAsync("/Note/Create", token, ("noteText", noteText));
+        foreach (var origin in ShareOrigins)
+        {
+            var address = new Uri(origin);
+            using var site = new TestSite(database.Helper, address);
+            var creator = $"note.author@{address.Host}";
+            site.Client.DefaultRequestHeaders.Add("X-Test-User", creator);
+            var token = await site.AntiforgeryAsync("/Note/Index");
+            using var response = await site.PostAsync("/Note/Create", token, ("noteText", noteText));
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        NoteHttpTests.AssertPrivacy(response);
-        var id = await database.ReadAsync<string>("SELECT ID FROM dbo.Notes WHERE Creator = 'note.author';");
-        Assert.Matches("^[a-z]{1,9}(-[a-z]{1,9}){3}$", id);
-        var html = await response.Content.ReadAsStringAsync();
-        Assert.Contains($"/note/{id}", html);
-        Assert.DoesNotContain(noteText, html);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            NoteHttpTests.AssertPrivacy(response);
+            var id = await database.ReadAsync<string>("SELECT ID FROM dbo.Notes WHERE Creator = @creator;", new { creator });
+            Assert.Matches("^[a-z]{1,9}(-[a-z]{1,9}){3}$", id);
+            var html = await response.Content.ReadAsStringAsync();
+            Assert.Contains($"id=\"fullurl\" type=\"text\" value=\"{origin}/note/{id}\"", html);
+            Assert.DoesNotContain(noteText, html);
+        }
     }
 
     [SqlFact]
@@ -167,11 +175,27 @@ public class SqlIntegrationTests(SqlDatabase database) : IClassFixture<SqlDataba
             else Assert.Matches("^[A-Za-z0-9]{5}$", id);
             Assert.Equal($"/Link/LinkCreated?shortUrl={id}", created.Headers.Location?.OriginalString);
             var html = await site.Client.GetStringAsync(created.Headers.Location);
-            Assert.Equal($"https://go.clcohio.org/{id}", LinkHttpTests.InputValue(html, "fullurl"));
+            Assert.Equal($"https://localhost/{id}", LinkHttpTests.InputValue(html, "fullurl"));
         }
 
         var missing = await site.Client.GetStringAsync("/Link/LinkCreated?shortUrl=unknown&URL=https://example.test");
         Assert.Contains("link you're looking for is invalid", missing);
+    }
+
+    [SqlFact]
+    public async Task ShortLinkConfirmationShowsTheRequestOriginInTheTextBoxAndHyperlink()
+    {
+        const string id = "Ab123";
+        database.Helper.InsertShortUrl(id, "https://example.test/share", "share.author");
+        foreach (var origin in ShareOrigins)
+        {
+            using var site = new TestSite(database.Helper, new Uri(origin));
+            site.Client.DefaultRequestHeaders.Add("X-Test-User", "share.author");
+            var html = await site.Client.GetStringAsync($"/Link/LinkCreated?shortUrl={id}");
+            var expected = $"{origin}/{id}";
+            Assert.Equal(expected, LinkHttpTests.InputValue(html, "fullurl"));
+            Assert.Contains($"<a href=\"{expected}\">{expected}</a>", html);
+        }
     }
 
     [SqlFact]

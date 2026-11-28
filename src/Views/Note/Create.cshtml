@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = "Create";
+    var shareUrl = Url.RouteUrl("View Note Warning", new { noteId = Model }, Context.Request.Scheme);
 }
 
 <h2>Note Created</h2>
@@ -10,7 +11,7 @@
 <p><strong>Your note will expire after 30 days (@DateTime.Now.AddDays(30).ToShortDateString())</strong></p>
 <div>
     <span style="font-weight:bold;">Share this URL: </span>
-    <input id="fullurl" type="text" value="@string.Format("https://go.clcohio.org/note/{0}",Model)" style="width:100%; max-width:40rem;" />
+    <input id="fullurl" type="text" value="@shareUrl" style="width:100%; max-width:40rem;" />
 </div>
 
 <script type="text/javascript">
