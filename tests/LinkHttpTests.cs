@@ -25,14 +25,6 @@ public class LinkHttpTests
         Assert.Equal("", InputValue(html, "ShortURL"));
     }
 
-    [Fact]
-    public async Task LegacyScriptCanBeLoadedWithoutSigningIn()
-    {
-        using var site = new TestSite();
-        var script = await site.Client.GetStringAsync("/scripts/bookmarklet.js");
-        Assert.Equal(OpenBookmark + ";", script.Trim().Replace(" ", ""));
-    }
-
     [Theory]
     [InlineData("")]
     [InlineData("   ")]

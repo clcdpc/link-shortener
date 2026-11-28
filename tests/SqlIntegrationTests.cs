@@ -155,6 +155,7 @@ public class SqlIntegrationTests(SqlDatabase database) : IClassFixture<SqlDataba
         {
             (https, https, "custom-link"),
             ("http://example.test", "http://example.test", ""),
+            ("http://intranet:8080", "http://intranet:8080", ""),
             ("example.test:8080/page", "http://example.test:8080/page", ""),
             ("example.test/path?q=http://other.test#section", "http://example.test/path?q=http://other.test#section", "")
         })

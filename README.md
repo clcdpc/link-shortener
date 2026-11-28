@@ -8,8 +8,6 @@ Sign in to [Link Shortener](https://go.clcohio.org/) and drag **Shorten Link** t
 
 You can also type a destination directly. The create and edit forms accept HTTP and HTTPS URLs and add `http://` to addresses such as `example.com/page`.
 
-Older saved bookmarklets load a compatibility script. Some sites block that script through their Content Security Policy, and browsers may block its pop-up. Drag **Shorten Link** from the home page again to install the self-contained version.
-
 ## Windows hosting
 
 Production stays at `C:\web\shorturl` until ThreatLocker approval and manual cutover. The .NET 10 application uses the following layout. Grant access to the existing IIS pool's domain service account on each directory, and check effective permissions including inherited grants.
