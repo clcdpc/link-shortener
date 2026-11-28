@@ -41,7 +41,7 @@ By default, link visits, note audits, and note rate limits use the connection pe
 }
 ```
 
-When upgrading, replace `ClientIp:TrustedProxyNetworks` with `Cloudflare:TrustedNetworks`, verify the ranges against the immediate peers, and set `Cloudflare:Enabled` to `true`. The package accepts a single address in `CF-Connecting-IP` from a trusted peer. If you used `ClientIp:ForwardedHeaderName`, configure the intermediary to verify its upstream and overwrite `CF-Connecting-IP` with the visitor address. Restart the application after changing these settings. With forwarding disabled, visitors behind one connector share its rate limit.
+When migrating an existing forwarded setup, carry its effective trusted ranges into `Cloudflare:TrustedNetworks` (formerly `ClientIp:TrustedProxyNetworks`), verify them against the immediate peers, and keep `Cloudflare:Enabled` set to `true`. Leave forwarding disabled where it was disabled before cutover. The package accepts a single address in `CF-Connecting-IP` from a trusted peer. If you used `ClientIp:ForwardedHeaderName`, configure the intermediary to verify its upstream and overwrite `CF-Connecting-IP` with the visitor address. Restart the application after changing these settings. With forwarding disabled, visitors behind one connector share its rate limit.
 
 Confirm the existing cleanup job and run the database preflight before cutover. The IIS application identity needs SELECT, INSERT, and DELETE on dbo.Notes and INSERT on both note audit tables. The artifact contains the supplied 5,521 words as an embedded resource and validates them at startup. Follow the manual cutover and rollback procedure for the existing IIS site. [IIS cutover](../README.md#manual-cutover)
 

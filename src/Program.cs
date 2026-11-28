@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web.UI;
+using NLog.Filters;
 
 namespace Clc.LinkShortener;
 
@@ -24,14 +25,16 @@ public static class Program
 
     public static int Main(string[] args)
     {
-        if (ClcConfigurationCommandLine.TryHandle(args, ApplicationDirectoryName, out var exitCode))
-            return exitCode;
-
+        ClcLogging logging = null;
         try
         {
+            if (ClcConfigurationCommandLine.TryHandle(args, ApplicationDirectoryName, out var exitCode))
+                return exitCode;
+
             var builder = WebApplication.CreateBuilder(args);
             builder.AddClcConfigurationWithBootstrap(ApplicationDirectoryName);
-            AddServices(builder);
+            logging = ClcLogging.Create(builder.GetClcApplicationPaths(), ConfigureLogging);
+            AddServices(builder, logging);
             var app = BuildApplication(builder);
             app.Run();
             return 0;
@@ -42,21 +45,58 @@ public static class Program
         }
         catch (Exception error)
         {
-            Console.Error.WriteLine($"Link Shortener stopped ({error.GetType().Name}). Check application.json, directory permissions and the application log.");
+            ReportStartupFailure(logging, error);
+        }
+        finally
+        {
+            logging?.Dispose();
         }
         return 1;
     }
 
-    internal static void AddServices(WebApplicationBuilder builder)
+    internal static void ReportStartupFailure(ClcLogging logging, Exception error)
     {
-        builder.Logging.ClearProviders();
-        // MVC trace can include bound arguments, and request diagnostics can include note URLs.
-        builder.AddClcLogging(options => options.ConfigureNLog = logging =>
+        // Both package handlers render the exception, including any inner exceptions.
+        var diagnostic = new Exception($"Link Shortener stopped ({error.GetType().Name}). Check application.json, directory permissions and the application log.");
+        if (logging == null)
+            ClcLogging.WriteStartupFailure(diagnostic);
+        else
+            logging.LogFatal(diagnostic);
+    }
+
+    internal static void ConfigureLogging(ClcLoggingOptions options)
+    {
+        options.ConfigureNLog = logging =>
+        {
+            // Both hosts log the raw startup exception before it reaches Main's fatal handler.
+            foreach (var rule in logging.LoggingRules)
+                rule.Filters.Add(new WhenMethodFilter(entry =>
+                {
+                    entry.Properties.TryGetValue("EventId", out var eventId);
+                    return (entry.LoggerName, eventId) switch
+                    {
+                        ("Microsoft.AspNetCore.Hosting.Diagnostics", 6) => FilterResult.Ignore,
+                        ("Microsoft.Extensions.Hosting.Internal.Host", 11) => FilterResult.Ignore,
+                        _ => FilterResult.Log
+                    };
+                }));
+
+            // MVC trace can include bound arguments, and request diagnostics can include note URLs.
             logging.LoggingRules.Insert(0, new NLog.Config.LoggingRule
             {
                 LoggerNamePattern = "Microsoft.AspNetCore.*",
                 FinalMinLevel = NLog.LogLevel.Warn
-            }));
+            });
+        };
+    }
+
+    internal static void AddServices(WebApplicationBuilder builder, ClcLogging logging = null)
+    {
+        builder.Logging.ClearProviders();
+        if (logging == null)
+            builder.AddClcLogging(ConfigureLogging);
+        else
+            builder.AddClcLogging(logging);
 
         var config = builder.Configuration;
         const string databaseServerKey = "Clc:DatabaseServer";

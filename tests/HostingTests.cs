@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using Clc.Configuration;
 using Clc.LinkShortener;
 using Clc.LinkShortener.Data;
+using Clc.Logging;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -16,6 +17,31 @@ namespace LinkShortener.Tests;
 
 public class HostingTests
 {
+    [Fact]
+    public async Task FatalDiagnosticSurvivesHostDisposalWithoutLoggingExceptionContents()
+    {
+        using var directory = new TestApplicationDirectory();
+        var builder = directory.CreateBuilder();
+        using (var logging = ClcLogging.Create(directory.Paths, Program.ConfigureLogging))
+        {
+            Program.AddServices(builder, logging);
+            InvalidOperationException error;
+            await using (var app = Program.BuildApplication(builder))
+            {
+                app.Use(_ => throw new InvalidOperationException("synthetic-credential", new Exception("synthetic-note")));
+                error = await Assert.ThrowsAsync<InvalidOperationException>(() => app.StartAsync());
+            }
+            Program.ReportStartupFailure(logging, error);
+        }
+
+        var logs = Path.Combine(directory.Paths.ApplicationDataDirectory, "Logs");
+        var log = File.ReadAllText(Assert.Single(Directory.GetFiles(logs, "clc-link-shortener-*.log")));
+        Assert.Contains("[FATAL]", log);
+        Assert.Contains("Link Shortener stopped (InvalidOperationException)", log);
+        Assert.DoesNotContain("synthetic-credential", log);
+        Assert.DoesNotContain("synthetic-note", log);
+    }
+
     [Fact]
     public void BootstrapCreatesOnlyTheExampleAndStopsUntilConfigured()
     {
