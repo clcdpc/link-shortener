@@ -15,9 +15,8 @@
 </div>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        $("input:text").focus(function () { $(this).select(); });
-        $('#fullurl').focus();
-		$('#fullurl').select();
-	});
+    const input = document.getElementById('fullurl');
+    input.addEventListener('focus', () => input.select());
+    input.focus();
+    input.select();
 </script>
