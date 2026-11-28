@@ -20,9 +20,9 @@ namespace Clc.LinkShortener.Controllers
             this.db = db;
         }
 
-        public IActionResult Index()
+        public IActionResult Index([FromQuery] string url = null)
         {
-            return View();
+            return View(new Link { URL = url });
         }
 
         public IActionResult List()
@@ -48,22 +48,47 @@ namespace Clc.LinkShortener.Controllers
             var link = db.GetShortUrl(shortUrl);
             if (link == null) return RedirectToAction("List");
             if (!CanEdit(link)) return Forbid();
-            if (string.IsNullOrWhiteSpace(url)) return BadRequest();
+            if (!TryGetDestination(url, out var destination))
+            {
+                link.URL = url;
+                return View(link);
+            }
 
-            if (!url.Contains(@"://")) url = string.Format(@"http://{0}", url);
-            db.UpdateLink(shortUrl, url);
+            db.UpdateLink(shortUrl, destination);
             return RedirectToAction("List");
         }
 
         private bool CanEdit(Link link) => string.Equals(link.Creator, User.Identity.Name) || User.IsAdmin();
 
+        private bool TryGetDestination(string input, out string destination)
+        {
+            destination = input?.Trim();
+            if (!string.IsNullOrEmpty(destination))
+            {
+                var colon = destination.IndexOf(':');
+                var prefix = colon < 0 ? "" : destination[..colon];
+                // A hostname followed by a port can also look like a URI scheme.
+                var hasHostPort = (prefix.Contains('.') || prefix.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                    && colon + 1 < destination.Length && char.IsAsciiDigit(destination[colon + 1]);
+                if (!Uri.CheckSchemeName(prefix) || hasHostPort)
+                    destination = "http://" + destination;
+
+                if (Uri.TryCreate(destination, UriKind.Absolute, out var uri)
+                    && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+                    && uri.IsWellFormedOriginalString())
+                    return true;
+            }
+
+            ModelState.AddModelError(nameof(Link.URL), "Enter a valid HTTP or HTTPS destination URL.");
+            return false;
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult CreateLink(Link link)
         {
-            if (link.URL == null)
+            if (!TryGetDestination(link.URL, out var destination))
             {
-                ModelState.AddModelError(string.Empty, "You must specify a url to shorten. Please try again.");
                 return View("Index", link);
             }
 
@@ -82,21 +107,19 @@ namespace Clc.LinkShortener.Controllers
                 }
             }
 
-            if (!link.URL.Contains(@"://")) link.URL = string.Format(@"http://{0}", link.URL);
-
+            link.URL = destination;
             link.Creator = User.Identity.Name;
             link.ShortURL = string.IsNullOrWhiteSpace(link.ShortURL) ? GenerateShortURL() : link.ShortURL;
 
             db.InsertShortUrl(link);
 
-            var fullLink = string.Format("http://shorturl.clcohio.org/{0}", link.ShortURL);
-
-            return RedirectToAction("LinkCreated", link);
+            return RedirectToAction(nameof(LinkCreated), new { shortUrl = link.ShortURL });
         }
 
-        public ActionResult LinkCreated(Link link)
+        public ActionResult LinkCreated(string shortUrl)
         {
-            return View(link);
+            var link = string.IsNullOrWhiteSpace(shortUrl) ? null : db.GetShortUrl(shortUrl);
+            return link == null ? View("InvalidShortURL") : View(link);
         }
 
         [AllowAnonymous]
